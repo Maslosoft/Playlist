@@ -4,6 +4,9 @@ playlist = [
 	'js/Adapters/YouTube.coffee',
 	'js/Adapters/Vimeo.coffee'
 ]
+less = [
+	'css/playlist.less'
+]
 
 module.exports = (grunt) ->
 
@@ -26,11 +29,21 @@ module.exports = (grunt) ->
 			compile:
 				files: playlist
 				tasks: ['coffee:compile']
+			less:
+				files: less
+				tasks: ['less:compile']
+		less:
+			compile:
+				files:
+					'dist/playlist.css' : less
+				options:
+					sourceMap: true
 
 	# These plugins provide necessary tasks.
 	grunt.loadNpmTasks 'grunt-contrib-coffee'
 	grunt.loadNpmTasks 'grunt-contrib-watch'
 	grunt.loadNpmTasks 'grunt-contrib-uglify'
+	grunt.loadNpmTasks 'grunt-contrib-less'
 
 	# Default task.
-	grunt.registerTask 'default', ['coffee', 'uglify']
+	grunt.registerTask 'default', ['coffee', 'less', 'uglify']

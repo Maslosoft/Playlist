@@ -1,0 +1,25 @@
+{
+  "name": "maslosoft-playlist",
+  "version": "0.0.0",
+  "homepage": "http://maslosoft.com/playlist/",
+  "authors": [
+    "Peter Maselkowski <pmaselkowski@gmail.com>"
+  ],
+  "description": "Create playlist from embeddable media",
+  "keywords": [
+    "media",
+    "embed",
+    "playlist",
+    "youtube",
+    "vimeo",
+    "video"
+  ],
+  "license": "Commercial",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

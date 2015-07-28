@@ -1,0 +1,59 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : Jul 13, 2015, 4:42:11 PM
+    Author     : Piotr Maselkowski <pmaselkowski at gmail.com>
+*/
+
+.maslosoft-videoplayer{
+	margin: 10px 0px;
+	width:100%;
+	display:table;
+	.maslosoft-video-embed-wrapper{
+		display:table-cell;
+		.maslosoft-video-embed-container {
+			background:black;
+			position: relative;
+			max-width:100%;
+			padding-bottom: 56.25%;
+			height: 0;
+			margin:0;
+			iframe, object, embed{
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				border:none;
+			}
+		}
+	}
+
+	.maslosoft-video-playlist{
+		min-width:120px;
+		width:15%;
+		display:table-cell;
+		background:black;
+		vertical-align: top;
+		a{
+			display:block;
+				opacity:.5;
+			&.active, &:hover{
+				opacity:1;
+			}
+			&.playing{
+				
+			}
+		}
+		.caption{
+			position:absolute;
+		}
+		img{
+			width:100%;
+			display:block;
+		}
+	}
+}

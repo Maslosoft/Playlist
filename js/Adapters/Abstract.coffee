@@ -1,10 +1,10 @@
-if not @Maslosoft.VideoPlayer.Adapters
-	@Maslosoft.VideoPlayer.Adapters = {}
+if not @Maslosoft.Playlist.Adapters
+	@Maslosoft.Playlist.Adapters = {}
 
 #
 # Any adapter class should imlement theese class methods
 #
-class @Maslosoft.VideoPlayer.Adapters.Abstract
+class @Maslosoft.Playlist.Adapters.Abstract
 
 	#
 	# Video id

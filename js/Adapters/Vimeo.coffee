@@ -1,7 +1,7 @@
-if not @Maslosoft.VideoPlayer.Adapters
-	@Maslosoft.VideoPlayer.Adapters = {}
+if not @Maslosoft.Playlist.Adapters
+	@Maslosoft.Playlist.Adapters = {}
 
-class @Maslosoft.VideoPlayer.Adapters.Vimeo extends @Maslosoft.VideoPlayer.Adapters.Abstract
+class @Maslosoft.Playlist.Adapters.Vimeo extends @Maslosoft.Playlist.Adapters.Abstract
 
 	@match: (url) ->
 		console.log 'vimeo'

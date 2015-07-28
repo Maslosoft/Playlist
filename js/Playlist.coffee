@@ -1,7 +1,7 @@
 if not @Maslosoft
 	@Maslosoft = {}
 
-class @Maslosoft.VideoPlayer
+class @Maslosoft.Playlist
 
 	@idCounter = 0
 
@@ -26,8 +26,8 @@ class @Maslosoft.VideoPlayer
 		# Set default adapters if empty
 		if not @adapters
 			@adapters = [
-				Maslosoft.VideoPlayer.Adapters.YouTube
-				Maslosoft.VideoPlayer.Adapters.Vimeo
+				Maslosoft.Playlist.Adapters.YouTube
+				Maslosoft.Playlist.Adapters.Vimeo
 			]
 
 		# Setup main container

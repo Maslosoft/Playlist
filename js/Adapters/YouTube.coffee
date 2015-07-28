@@ -1,7 +1,7 @@
-if not @Maslosoft.VideoPlayer.Adapters
-	@Maslosoft.VideoPlayer.Adapters = {}
+if not @Maslosoft.Playlist.Adapters
+	@Maslosoft.Playlist.Adapters = {}
 
-class @Maslosoft.VideoPlayer.Adapters.YouTube extends @Maslosoft.VideoPlayer.Adapters.Abstract
+class @Maslosoft.Playlist.Adapters.YouTube extends @Maslosoft.Playlist.Adapters.Abstract
 
 	#
 	# Return true if this adapter can handle URL

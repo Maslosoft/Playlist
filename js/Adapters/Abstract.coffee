@@ -74,7 +74,7 @@ class @Maslosoft.Playlist.Adapters.Abstract
 	# Get iframe src. This should return embbedable media iframe ready URL
 	#
 	#
-	getSrc: () ->
+	getSrc: (@frame) ->
 
 	isPlaying: () ->
 		return @playing

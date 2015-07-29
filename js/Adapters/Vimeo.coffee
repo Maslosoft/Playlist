@@ -18,8 +18,8 @@ class @Maslosoft.Playlist.Adapters.Vimeo extends @Maslosoft.Playlist.Adapters.Ab
 	# Get iframe src. This should return embbedable media iframe ready URL
 	#
 	#
-	getSrc: () ->
-		return "//player.vimeo.com/video/#{@id}?enablejsapi=1"
+	getSrc: (@frame) ->
+		return "//player.vimeo.com/video/#{@id}?api=1&player_id=#{@frame}"
 
 	#
 	# Set preview, or thumb for embaddable media
@@ -42,15 +42,15 @@ class @Maslosoft.Playlist.Adapters.Vimeo extends @Maslosoft.Playlist.Adapters.Ab
 	# Play embeddable media
 	#
 	play: (@frame) ->
-		@call 'playVideo'
+		@call 'play'
 		@playing = true
 
 	stop: (@frame) ->
-		@call 'stopVideo'
+		@call 'unload'
 		@playing = false
 
 	pause: (@frame) ->
-		@call 'pauseVideo'
+		@call 'pause'
 		@playing = false
 
 
@@ -59,15 +59,13 @@ class @Maslosoft.Playlist.Adapters.Vimeo extends @Maslosoft.Playlist.Adapters.Ab
 	#
 	call: (func, args = []) ->
 
-#		frameId = @frame.get(0).id
-#		iframe = document.getElementById(frameId);
-#		console.log iframe
-#		data = {
-#			"event": "command",
-#			"func": func,
-#			"args": args,
-#			"id": frameId
-#		}
-#		console.log data
-#		result = iframe.contentWindow.postMessage(JSON.stringify(data), "*")
-#		console.log result
+		frameId = @frame.get(0).id
+		iframe = document.getElementById(frameId);
+		console.log iframe
+		data = {
+			"method": func,
+			"value": args
+		}
+		console.log data
+		result = iframe.contentWindow.postMessage(JSON.stringify(data), "*")
+		console.log result

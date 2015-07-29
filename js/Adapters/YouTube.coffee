@@ -27,7 +27,7 @@ class @Maslosoft.Playlist.Adapters.YouTube extends @Maslosoft.Playlist.Adapters.
 	# Get iframe src. This should return embbedable media iframe ready URL
 	#
 	#
-	getSrc: () ->
+	getSrc: (@frame) ->
 		return "//www.youtube.com/embed/#{@id}?enablejsapi=1"
 
 	#

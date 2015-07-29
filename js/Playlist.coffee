@@ -82,7 +82,7 @@ class @Maslosoft.Playlist
 					# Setup initial movie
 					if first
 						@current = ad
-						@frame.prop 'src', ad.getSrc()
+						@frame.prop 'src', ad.getSrc(@frame)
 						linkElement.addClass 'active'
 						first = false
 
@@ -114,10 +114,10 @@ class @Maslosoft.Playlist
 
 			# Load source if not already loaded
 			loaded = true
-			if not @frame.prop('src').replace('?', 'X').match(adapter.getSrc().replace('?', 'X'))
+			if not @frame.prop('src').replace('?', 'X').match(adapter.getSrc(@frame).replace('?', 'X'))
 				@current = adapter
 				loaded = false
-				@frame.prop 'src', adapter.getSrc()
+				@frame.prop 'src', adapter.getSrc(@frame)
 			
 			# Play when player is loaded into iframe
 			if not loaded

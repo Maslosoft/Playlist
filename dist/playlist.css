@@ -7,15 +7,15 @@ and open the template in the editor.
     Created on : Jul 13, 2015, 4:42:11 PM
     Author     : Piotr Maselkowski <pmaselkowski at gmail.com>
 */
-.maslosoft-videoplayer {
+.maslosoft-playlist {
   margin: 10px 0px;
   width: 100%;
   display: table;
 }
-.maslosoft-videoplayer .maslosoft-video-embed-wrapper {
+.maslosoft-playlist .maslosoft-video-embed-wrapper {
   display: table-cell;
 }
-.maslosoft-videoplayer .maslosoft-video-embed-wrapper .maslosoft-video-embed-container {
+.maslosoft-playlist .maslosoft-video-embed-wrapper .maslosoft-video-embed-container {
   background: black;
   position: relative;
   max-width: 100%;
@@ -23,9 +23,9 @@ and open the template in the editor.
   height: 0;
   margin: 0;
 }
-.maslosoft-videoplayer .maslosoft-video-embed-wrapper .maslosoft-video-embed-container iframe,
-.maslosoft-videoplayer .maslosoft-video-embed-wrapper .maslosoft-video-embed-container object,
-.maslosoft-videoplayer .maslosoft-video-embed-wrapper .maslosoft-video-embed-container embed {
+.maslosoft-playlist .maslosoft-video-embed-wrapper .maslosoft-video-embed-container iframe,
+.maslosoft-playlist .maslosoft-video-embed-wrapper .maslosoft-video-embed-container object,
+.maslosoft-playlist .maslosoft-video-embed-wrapper .maslosoft-video-embed-container embed {
   position: absolute;
   top: 0;
   left: 0;
@@ -33,25 +33,25 @@ and open the template in the editor.
   height: 100%;
   border: none;
 }
-.maslosoft-videoplayer .maslosoft-video-playlist {
+.maslosoft-playlist .maslosoft-video-playlist {
   min-width: 120px;
   width: 15%;
   display: table-cell;
   background: black;
   vertical-align: top;
 }
-.maslosoft-videoplayer .maslosoft-video-playlist a {
+.maslosoft-playlist .maslosoft-video-playlist a {
   display: block;
   opacity: .5;
 }
-.maslosoft-videoplayer .maslosoft-video-playlist a.active,
-.maslosoft-videoplayer .maslosoft-video-playlist a:hover {
+.maslosoft-playlist .maslosoft-video-playlist a.active,
+.maslosoft-playlist .maslosoft-video-playlist a:hover {
   opacity: 1;
 }
-.maslosoft-videoplayer .maslosoft-video-playlist .caption {
+.maslosoft-playlist .maslosoft-video-playlist .caption {
   position: absolute;
 }
-.maslosoft-videoplayer .maslosoft-video-playlist img {
+.maslosoft-playlist .maslosoft-video-playlist img {
   width: 100%;
   display: block;
 }

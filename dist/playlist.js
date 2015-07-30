@@ -1,5 +1,6 @@
 (function() {
-  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+  var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
   if (!this.Maslosoft) {
@@ -36,7 +37,7 @@
       if (this.element.id) {
         this.id = this.element.id;
       } else {
-        this.id = 'maslosoftVideoPlayer' + VideoPlayer.idCounter++;
+        this.id = 'maslosoftPlaylist' + Playlist.idCounter++;
         this.element.prop('id', this.id);
       }
       this.frameId = this.id + "Frame";
@@ -63,7 +64,7 @@
             linkElement = this.createLink(ad);
             if (first) {
               this.current = ad;
-              this.frame.prop('src', ad.getSrc());
+              this.frame.prop('src', ad.getSrc(this.frame));
               linkElement.addClass('active');
               first = false;
             }
@@ -89,15 +90,19 @@
         return function(e) {
           var loaded;
           loaded = true;
-          if (!_this.frame.prop('src').replace('?', 'X').match(adapter.getSrc().replace('?', 'X'))) {
+          if (adapter !== _this.current) {
+            console.log('Load frame');
             _this.current = adapter;
             loaded = false;
-            _this.frame.prop('src', adapter.getSrc());
+            _this.frame.prop('src', adapter.getSrc(_this.frame));
           }
           if (!loaded) {
             _this.frame.one('load', function(e) {
-              _this.links.removeClass('active playing');
+              adapter.onEnd(_this.frame, function() {
+                return console.log('Video stopped');
+              });
               adapter.play(_this.frame);
+              _this.links.removeClass('active playing');
               if (adapter.isPlaying()) {
                 link.addClass('active playing');
               }
@@ -167,10 +172,16 @@
 
     Abstract.prototype.setThumb = function(thumb) {};
 
-    Abstract.prototype.getSrc = function() {};
+    Abstract.prototype.getSrc = function(frame) {
+      this.frame = frame;
+    };
 
     Abstract.prototype.isPlaying = function() {
       return this.playing;
+    };
+
+    Abstract.prototype.onEnd = function(frame, event) {
+      this.frame = frame;
     };
 
     Abstract.prototype.play = function(frame) {
@@ -197,6 +208,7 @@
     extend(YouTube, superClass);
 
     function YouTube() {
+      this.onEnd = bind(this.onEnd, this);
       return YouTube.__super__.constructor.apply(this, arguments);
     }
 
@@ -213,7 +225,8 @@
       return thumb.prop('src', "//img.youtube.com/vi/" + this.id + "/0.jpg");
     };
 
-    YouTube.prototype.getSrc = function() {
+    YouTube.prototype.getSrc = function(frame) {
+      this.frame = frame;
       return "//www.youtube.com/embed/" + this.id + "?enablejsapi=1";
     };
 
@@ -235,6 +248,10 @@
       return this.playing = false;
     };
 
+    YouTube.prototype.onEnd = function(frame, event) {
+      this.frame = frame;
+    };
+
     YouTube.prototype.call = function(func, args) {
       var data, frameId, iframe, result;
       if (args == null) {
@@ -242,16 +259,13 @@
       }
       frameId = this.frame.get(0).id;
       iframe = document.getElementById(frameId);
-      console.log(iframe);
       data = {
         "event": "command",
         "func": func,
         "args": args,
         "id": frameId
       };
-      console.log(data);
-      result = iframe.contentWindow.postMessage(JSON.stringify(data), "*");
-      return console.log(result);
+      return result = iframe.contentWindow.postMessage(JSON.stringify(data), "*");
     };
 
     return YouTube;
@@ -280,8 +294,9 @@
       return console.log(this.id);
     };
 
-    Vimeo.prototype.getSrc = function() {
-      return "//player.vimeo.com/video/" + this.id + "?enablejsapi=1";
+    Vimeo.prototype.getSrc = function(frame) {
+      this.frame = frame;
+      return "//player.vimeo.com/video/" + this.id + "?api=1&player_id=" + this.frame;
     };
 
     Vimeo.prototype.setThumb = function(thumb) {
@@ -302,26 +317,64 @@
 
     Vimeo.prototype.play = function(frame) {
       this.frame = frame;
-      this.call('playVideo');
+      this.call('play');
       return this.playing = true;
     };
 
     Vimeo.prototype.stop = function(frame) {
       this.frame = frame;
-      this.call('stopVideo');
+      this.call('unload');
       return this.playing = false;
     };
 
     Vimeo.prototype.pause = function(frame) {
       this.frame = frame;
-      this.call('pauseVideo');
+      this.call('pause');
       return this.playing = false;
     };
 
+    Vimeo.prototype.onEnd = function(frame, event) {
+      var onMsg;
+      this.frame = frame;
+      console.log('Attaching event onStop');
+      if (window.addEventListener) {
+        window.addEventListener('message', onMsg, false);
+      } else {
+        window.attachEvent('onmessage', onMsg, false);
+      }
+      jQuery(window).on('message', (function(_this) {
+        return function(e) {
+          return console.log('On message...');
+        };
+      })(this));
+      onMsg = (function(_this) {
+        return function(e) {
+          console.log('Got event:');
+          return console.log(e);
+        };
+      })(this);
+      return jQuery(this.frame).on('message', (function(_this) {
+        return function(e) {
+          var data;
+          data = JSON.parse(e.data);
+          console.log('Received data from player...');
+          return console.log(data);
+        };
+      })(this));
+    };
+
     Vimeo.prototype.call = function(func, args) {
+      var data, frameId, iframe, result;
       if (args == null) {
         args = [];
       }
+      frameId = this.frame.get(0).id;
+      iframe = document.getElementById(frameId);
+      data = {
+        "method": func,
+        "value": args
+      };
+      return result = iframe.contentWindow.postMessage(JSON.stringify(data), "*");
     };
 
     return Vimeo;

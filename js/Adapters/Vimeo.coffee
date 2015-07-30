@@ -39,33 +39,62 @@ class @Maslosoft.Playlist.Adapters.Vimeo extends @Maslosoft.Playlist.Adapters.Ab
 		});
 
 	#
-	# Play embeddable media
+	# Play vimeo movie
 	#
 	play: (@frame) ->
 		@call 'play'
 		@playing = true
 
+	#
+	# Stop vimeo movie
+	#
 	stop: (@frame) ->
 		@call 'unload'
 		@playing = false
 
+	#
+	# Pause vimeo movie
+	#
 	pause: (@frame) ->
 		@call 'pause'
 		@playing = false
 
+	#
+	# On stop event
+	# @param object Iframe object
+	# @param function Function to call after finish
+	#
+	onEnd: (@frame, event) ->
+		console.log 'Attaching event onStop'
+		
+		if window.addEventListener
+			window.addEventListener('message', onMsg, false)
+		else
+			window.attachEvent('onmessage', onMsg, false)
+
+		jQuery(window).on 'message', (e) =>
+			console.log 'On message...'
+
+		onMsg = (e) =>
+			console.log 'Got event:'
+			console.log e
+
+		jQuery(@frame).on 'message', (e) =>
+			data = JSON.parse e.data
+			console.log 'Received data from player...'
+			console.log data
+	
 
 	#
 	# Vimeo specific methods
+	# @param function Function name to call on player
+	# @param mixed Optional arguments
 	#
 	call: (func, args = []) ->
-
 		frameId = @frame.get(0).id
 		iframe = document.getElementById(frameId);
-		console.log iframe
 		data = {
 			"method": func,
 			"value": args
 		}
-		console.log data
 		result = iframe.contentWindow.postMessage(JSON.stringify(data), "*")
-		console.log result

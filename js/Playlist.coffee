@@ -35,7 +35,7 @@ class @Maslosoft.Playlist
 		if @element.id
 			@id = @element.id
 		else
-			@id = 'maslosoftVideoPlayer' + VideoPlayer.idCounter++
+			@id = 'maslosoftPlaylist' + Playlist.idCounter++
 			@element.prop 'id' , @id
 
 		@frameId = "#{@id}Frame"
@@ -114,7 +114,8 @@ class @Maslosoft.Playlist
 
 			# Load source if not already loaded
 			loaded = true
-			if not @frame.prop('src').replace('?', 'X').match(adapter.getSrc(@frame).replace('?', 'X'))
+			if adapter isnt @current
+				console.log 'Load frame'
 				@current = adapter
 				loaded = false
 				@frame.prop 'src', adapter.getSrc(@frame)
@@ -122,8 +123,15 @@ class @Maslosoft.Playlist
 			# Play when player is loaded into iframe
 			if not loaded
 				@frame.one 'load', (e) =>
-					@links.removeClass 'active playing'
+					# Attach event on playback of current video finish
+					adapter.onEnd @frame, () =>
+						console.log 'Video finished'
+
+					# Play media
 					adapter.play @frame
+
+					# Attach some decorations
+					@links.removeClass 'active playing'
 					if adapter.isPlaying()
 						link.addClass 'active playing'
 					console.log 'player loaded for: ' + adapter.getTitle()

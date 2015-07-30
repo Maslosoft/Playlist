@@ -35,7 +35,7 @@ class @Maslosoft.Playlist
 		if @element.id
 			@id = @element.id
 		else
-			@id = 'maslosoftVideoPlayer' + VideoPlayer.idCounter++
+			@id = 'maslosoftPlaylist' + Playlist.idCounter++
 			@element.prop 'id' , @id
 
 		@frameId = "#{@id}Frame"
@@ -82,7 +82,7 @@ class @Maslosoft.Playlist
 					# Setup initial movie
 					if first
 						@current = ad
-						@frame.prop 'src', ad.getSrc()
+						@frame.prop 'src', ad.getSrc(@frame)
 						linkElement.addClass 'active'
 						first = false
 
@@ -114,16 +114,24 @@ class @Maslosoft.Playlist
 
 			# Load source if not already loaded
 			loaded = true
-			if not @frame.prop('src').replace('?', 'X').match(adapter.getSrc().replace('?', 'X'))
+			if adapter isnt @current
+				console.log 'Load frame'
 				@current = adapter
 				loaded = false
-				@frame.prop 'src', adapter.getSrc()
+				@frame.prop 'src', adapter.getSrc(@frame)
 			
 			# Play when player is loaded into iframe
 			if not loaded
 				@frame.one 'load', (e) =>
-					@links.removeClass 'active playing'
+					# Attach event on playback of current video finish
+					adapter.onEnd @frame, () =>
+						console.log 'Video stopped'
+
+					# Play media
 					adapter.play @frame
+
+					# Attach some decorations
+					@links.removeClass 'active playing'
 					if adapter.isPlaying()
 						link.addClass 'active playing'
 					console.log 'player loaded for: ' + adapter.getTitle()
@@ -225,10 +233,17 @@ class @Maslosoft.Playlist.Adapters.Abstract
 	# Get iframe src. This should return embbedable media iframe ready URL
 	#
 	#
-	getSrc: () ->
+	getSrc: (@frame) ->
 
 	isPlaying: () ->
 		return @playing
+
+	#
+	# Attach event on movie finish
+	# @param function Event to attach at move stop
+	#
+	onEnd: (@frame, event) ->
+
 
 	#
 	# Play embeddable media
@@ -268,7 +283,7 @@ class @Maslosoft.Playlist.Adapters.YouTube extends @Maslosoft.Playlist.Adapters.
 	# Get iframe src. This should return embbedable media iframe ready URL
 	#
 	#
-	getSrc: () ->
+	getSrc: (@frame) ->
 		return "//www.youtube.com/embed/#{@id}?enablejsapi=1"
 
 	#
@@ -286,6 +301,7 @@ class @Maslosoft.Playlist.Adapters.YouTube extends @Maslosoft.Playlist.Adapters.
 		@call 'pauseVideo'
 		@playing = false
 
+	onEnd: (@frame, event) =>
 
 	#
 	# Youtube specific methods
@@ -293,16 +309,13 @@ class @Maslosoft.Playlist.Adapters.YouTube extends @Maslosoft.Playlist.Adapters.
 	call: (func, args = []) ->
 		frameId = @frame.get(0).id
 		iframe = document.getElementById(frameId);
-		console.log iframe
 		data = {
 			"event": "command",
 			"func": func,
 			"args": args,
 			"id": frameId
 		}
-		console.log data
 		result = iframe.contentWindow.postMessage(JSON.stringify(data), "*")
-		console.log result
 
 
 if not @Maslosoft.Playlist.Adapters
@@ -325,8 +338,8 @@ class @Maslosoft.Playlist.Adapters.Vimeo extends @Maslosoft.Playlist.Adapters.Ab
 	# Get iframe src. This should return embbedable media iframe ready URL
 	#
 	#
-	getSrc: () ->
-		return "//player.vimeo.com/video/#{@id}?enablejsapi=1"
+	getSrc: (@frame) ->
+		return "//player.vimeo.com/video/#{@id}?api=1&player_id=#{@frame}"
 
 	#
 	# Set preview, or thumb for embaddable media
@@ -346,35 +359,62 @@ class @Maslosoft.Playlist.Adapters.Vimeo extends @Maslosoft.Playlist.Adapters.Ab
 		});
 
 	#
-	# Play embeddable media
+	# Play vimeo movie
 	#
 	play: (@frame) ->
-		@call 'playVideo'
+		@call 'play'
 		@playing = true
 
+	#
+	# Stop vimeo movie
+	#
 	stop: (@frame) ->
-		@call 'stopVideo'
+		@call 'unload'
 		@playing = false
 
+	#
+	# Pause vimeo movie
+	#
 	pause: (@frame) ->
-		@call 'pauseVideo'
+		@call 'pause'
 		@playing = false
 
+	#
+	# On stop event
+	# @param object Iframe object
+	# @param function Function to call after finish
+	#
+	onEnd: (@frame, event) ->
+		console.log 'Attaching event onStop'
+		
+		if window.addEventListener
+			window.addEventListener('message', onMsg, false)
+		else
+			window.attachEvent('onmessage', onMsg, false)
+
+		jQuery(window).on 'message', (e) =>
+			console.log 'On message...'
+
+		onMsg = (e) =>
+			console.log 'Got event:'
+			console.log e
+
+		jQuery(@frame).on 'message', (e) =>
+			data = JSON.parse e.data
+			console.log 'Received data from player...'
+			console.log data
+	
 
 	#
 	# Vimeo specific methods
+	# @param function Function name to call on player
+	# @param mixed Optional arguments
 	#
 	call: (func, args = []) ->
-
-#		frameId = @frame.get(0).id
-#		iframe = document.getElementById(frameId);
-#		console.log iframe
-#		data = {
-#			"event": "command",
-#			"func": func,
-#			"args": args,
-#			"id": frameId
-#		}
-#		console.log data
-#		result = iframe.contentWindow.postMessage(JSON.stringify(data), "*")
-#		console.log result
+		frameId = @frame.get(0).id
+		iframe = document.getElementById(frameId);
+		data = {
+			"method": func,
+			"value": args
+		}
+		result = iframe.contentWindow.postMessage(JSON.stringify(data), "*")

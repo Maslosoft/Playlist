@@ -80,6 +80,13 @@ class @Maslosoft.Playlist.Adapters.Abstract
 		return @playing
 
 	#
+	# Attach event on movie finish
+	# @param function Event to attach at move stop
+	#
+	onEnd: (@frame, event) ->
+
+
+	#
 	# Play embeddable media
 	#
 	play: (@frame) ->

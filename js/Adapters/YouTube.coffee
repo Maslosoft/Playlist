@@ -45,6 +45,7 @@ class @Maslosoft.Playlist.Adapters.YouTube extends @Maslosoft.Playlist.Adapters.
 		@call 'pauseVideo'
 		@playing = false
 
+	onEnd: (@frame, event) =>
 
 	#
 	# Youtube specific methods
@@ -52,14 +53,11 @@ class @Maslosoft.Playlist.Adapters.YouTube extends @Maslosoft.Playlist.Adapters.
 	call: (func, args = []) ->
 		frameId = @frame.get(0).id
 		iframe = document.getElementById(frameId);
-		console.log iframe
 		data = {
 			"event": "command",
 			"func": func,
 			"args": args,
 			"id": frameId
 		}
-		console.log data
 		result = iframe.contentWindow.postMessage(JSON.stringify(data), "*")
-		console.log result
 

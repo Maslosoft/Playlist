@@ -125,7 +125,7 @@ class @Maslosoft.Playlist
 				@frame.one 'load', (e) =>
 					# Attach event on playback of current video finish
 					adapter.onEnd @frame, () =>
-						console.log 'Video stopped'
+						console.log 'Video finished'
 
 					# Play media
 					adapter.play @frame

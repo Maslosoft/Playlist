@@ -99,7 +99,7 @@
           if (!loaded) {
             _this.frame.one('load', function(e) {
               adapter.onEnd(_this.frame, function() {
-                return console.log('Video stopped');
+                return console.log('Video finished');
               });
               adapter.play(_this.frame);
               _this.links.removeClass('active playing');

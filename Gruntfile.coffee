@@ -1,8 +1,9 @@
 playlist = [
 	'js/Playlist.coffee',
-	'js/Adapters/Abstract.coffee',
-	'js/Adapters/YouTube.coffee',
-	'js/Adapters/Vimeo.coffee'
+	'js/Options.coffee',
+	'js/Adapters/*',
+	'js/Data/*',
+	'js/Extractors/*'
 ]
 less = [
 	'css/playlist.less'

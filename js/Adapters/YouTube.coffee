@@ -18,10 +18,10 @@ class @Maslosoft.Playlist.Adapters.YouTube extends @Maslosoft.Playlist.Adapters.
 
 	#
 	# Set preview, or thumb for embaddable media
-	# @param jQuery Img element
+	# @param function thumbCallback Callback to set video thumbnail
 	#
-	setThumb: (thumb) ->
-		thumb.prop 'src', "//img.youtube.com/vi/#{@id}/0.jpg"
+	setThumb: (thumbCallback) ->
+		thumbCallback "//img.youtube.com/vi/#{@id}/0.jpg"
 
 	#
 	# Get iframe src. This should return embbedable media iframe ready URL
@@ -36,7 +36,7 @@ class @Maslosoft.Playlist.Adapters.YouTube extends @Maslosoft.Playlist.Adapters.
 	play: (@frame) ->
 		@call 'playVideo'
 		@playing = true
-		
+
 	stop: (@frame) ->
 		@call 'stopVideo'
 		@playing = false
@@ -60,4 +60,3 @@ class @Maslosoft.Playlist.Adapters.YouTube extends @Maslosoft.Playlist.Adapters.
 			"id": frameId
 		}
 		result = iframe.contentWindow.postMessage(JSON.stringify(data), "*")
-

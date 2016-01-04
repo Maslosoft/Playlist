@@ -10,25 +10,32 @@ class @Maslosoft.Playlist
 	frameId = ''
 
 	element = null
-	
+
 	playlistLinks = null
 
 	links = null
 
-	videos = []
+	#
+	# Video adapters
+	# @var Maslosoft.Playlist.Adapters.Abstract[]
+	#
+	adapters: []
 
-	constructor: (element, @adapters = null, @options = null) ->
+	#
+	# Data extractor
+	# @var Maslosoft.Extractors.Abstract
+	#
+	extractor: null
 
-		if not @options
-			# TODO
-			@options = {}
+	constructor: (element, options = null) ->
 
-		# Set default adapters if empty
-		if not @adapters
-			@adapters = [
-				Maslosoft.Playlist.Adapters.YouTube
-				Maslosoft.Playlist.Adapters.Vimeo
-			]
+		@options = new Maslosoft.Playlist.Options options
+
+		# Set adapters from options
+		@adapters = @options.adapters
+
+		# Set extractor
+		@extractor = new @options.extractor
 
 		# Setup main container
 		@element = jQuery element
@@ -47,7 +54,7 @@ class @Maslosoft.Playlist
 	build:() ->
 
 		# Collect videos
-		links = @element.find 'a'
+		links = @extractor.getData @element
 
 		# Build wrappers
 		@element.html(
@@ -57,7 +64,7 @@ class @Maslosoft.Playlist
 				</div>
 			</div>'
 		)
-		
+
 		# Select playlist
 		@playlist = jQuery '<div class="maslosoft-video-playlist" />'
 
@@ -69,12 +76,12 @@ class @Maslosoft.Playlist
 			for adapter in @adapters
 
 				# Check if can be used with current link
-				if adapter.match link.href
+				if adapter.match link.url
 
 					# Init adapter
 					ad = new adapter
-					ad.setUrl link.href
-					ad.setTitle link.innerHTML
+					ad.setUrl link.url
+					ad.setTitle link.title
 
 					# Make link in playlist
 					linkElement = @createLink ad
@@ -86,16 +93,33 @@ class @Maslosoft.Playlist
 						linkElement.addClass 'active'
 						first = false
 
-		
+
 		@element.append @playlist
 		@links = @playlist.find 'a'
 
-	createLink: (adapter) ->
+		# Tooltip option (bootstrap only)
+		if typeof(jQuery.fn.tooltip) is 'function'
 
-		# Create thumb
-		thumb = jQuery '<img />'
-		adapter.setThumb(thumb)
-		thumb.prop 'alt', adapter.getTitle()
+			placement = 'left'
+
+			# Reconfigure placement
+			# if @sharer.element.hasClass 'awe-share-pin-left'
+				# placement = 'right'
+
+			# if @sharer.element.hasClass 'awe-share-pin-right'
+				# placement = 'left'
+
+			# Ovverride if custom
+			# if typeof(@data.tip) is 'string'
+				# placement = @data.tip
+
+			# Apply only to selected sharers
+			jQuery(".maslosoft-video-playlist").tooltip({
+				selector: 'a'
+				placement: placement
+			});
+
+	createLink: (adapter) ->
 
 		# Create caption
 		caption = jQuery '<div class="caption"/>'
@@ -103,23 +127,41 @@ class @Maslosoft.Playlist
 
 		# Create link
 		link = jQuery '<a />'
-		link.prop 'title', adapter.getTitle()
-		link.prop 'href', adapter.getUrl()
-		link.html thumb
+		link.attr 'id', adapter.linkId
+		link.attr 'title', adapter.getTitle()
+		link.attr 'href', adapter.getUrl()
+		link.attr 'rel', 'tooltip'
+		link.attr 'data-placement', 'left'
+
+		thumbCallback = (src) ->
+			link.css 'background-image', "url('#{src}')"
+			link.attr 'title', adapter.getTitle()
+		adapter.setThumb(thumbCallback)
+
+		link.html '<i></i>'
 		# TODO Style caption
 #		link.append caption
+
+		# Some workarounds for mouseout
+		link.on 'mouseout', (e) =>
+			# Hide tooltip to prevent it staying above video
+			if typeof(jQuery.fn.tooltip) is 'function'
+				link.tooltip 'hide'
 
 		# Play on click
 		link.on 'click', (e) =>
 
+			# Hide tooltip to prevent it staying above video
+			if typeof(jQuery.fn.tooltip) is 'function'
+				link.tooltip 'hide'
+
 			# Load source if not already loaded
 			loaded = true
 			if adapter isnt @current
-				console.log 'Load frame'
 				@current = adapter
 				loaded = false
 				@frame.prop 'src', adapter.getSrc(@frame)
-			
+
 			# Play when player is loaded into iframe
 			if not loaded
 				@frame.one 'load', (e) =>
@@ -134,7 +176,6 @@ class @Maslosoft.Playlist
 					@links.removeClass 'active playing'
 					if adapter.isPlaying()
 						link.addClass 'active playing'
-					console.log 'player loaded for: ' + adapter.getTitle()
 
 			# Play or stop when player is loaded
 			if loaded

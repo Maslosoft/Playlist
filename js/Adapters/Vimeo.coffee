@@ -4,15 +4,13 @@ if not @Maslosoft.Playlist.Adapters
 class @Maslosoft.Playlist.Adapters.Vimeo extends @Maslosoft.Playlist.Adapters.Abstract
 
 	@match: (url) ->
-		console.log 'vimeo'
 		return url.match('vimeo')
 
 	#
-	# @param srting url Embaddable media url
+	# @param string url Embaddable media url
 	#
 	setUrl: (@url) ->
 		@id = @url.replace(/.+\//, '')
-		console.log @id
 
 	#
 	# Get iframe src. This should return embbedable media iframe ready URL
@@ -23,9 +21,9 @@ class @Maslosoft.Playlist.Adapters.Vimeo extends @Maslosoft.Playlist.Adapters.Ab
 
 	#
 	# Set preview, or thumb for embaddable media
-	# @param jQuery Img element
+	# @param function thumbCallback Img element
 	#
-	setThumb: (thumb) ->
+	setThumb: (thumbCallback) ->
 		# Get thumb
 		# http://stackoverflow.com/a/8616607
 		$.ajax({
@@ -34,9 +32,10 @@ class @Maslosoft.Playlist.Adapters.Vimeo extends @Maslosoft.Playlist.Adapters.Ab
 			jsonp: 'callback'
 			dataType: 'jsonp'
 			success: (data) =>
-				thumbnail_src = data[0].thumbnail_large;
-				thumb.prop 'src', thumbnail_src
-		});
+				if not @title
+					@setTitle data[0].title
+				thumbCallback data[0].thumbnail_large
+		})
 
 	#
 	# Play vimeo movie
@@ -66,7 +65,7 @@ class @Maslosoft.Playlist.Adapters.Vimeo extends @Maslosoft.Playlist.Adapters.Ab
 	#
 	onEnd: (@frame, event) ->
 		console.log 'Attaching event onStop'
-		
+
 		if window.addEventListener
 			window.addEventListener('message', onMsg, false)
 		else
@@ -83,7 +82,7 @@ class @Maslosoft.Playlist.Adapters.Vimeo extends @Maslosoft.Playlist.Adapters.Ab
 			data = JSON.parse e.data
 			console.log 'Received data from player...'
 			console.log data
-	
+
 
 	#
 	# Vimeo specific methods

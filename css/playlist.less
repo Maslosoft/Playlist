@@ -3,7 +3,7 @@ To change this license header, choose License Headers in Project Properties.
 To change this template file, choose Tools | Templates
 and open the template in the editor.
 */
-/* 
+/*
     Created on : Jul 13, 2015, 4:42:11 PM
     Author     : Piotr Maselkowski <pmaselkowski at gmail.com>
 */
@@ -31,6 +31,12 @@ and open the template in the editor.
 			}
 		}
 	}
+	.maslosoft-video-play{
+		background-image: data-uri('image/png', 'play.png');
+	}
+	.maslosoft-video-pause{
+		background-image: data-uri('image/png', 'pause.png');
+	}
 
 	.maslosoft-video-playlist{
 		min-width:120px;
@@ -39,13 +45,38 @@ and open the template in the editor.
 		background:black;
 		vertical-align: top;
 		a{
+
+			//background: url(http://i.vimeocdn.com/video/533074067_640.jpg);
+			width: 100%;
+			background-size: 150%;
+			background-position: 50% 50%;
 			display:block;
-				opacity:.5;
+			opacity:.5;
+			i{
+				display: block;
+				width: 100%;
+				padding-bottom: 56.25%;
+				background-size: contain;
+				background-position: 50% 50%;
+				background-repeat: no-repeat;
+				opacity: .7;
+			}
 			&.active, &:hover{
 				opacity:1;
+				i{
+					background-image: data-uri('../css/play.png');
+				}
+			}
+			&:hover{
+				opacity:.9;
+				i{
+					opacity: 1;
+				}
 			}
 			&.playing{
-				
+				i{
+					background-image: data-uri('../css/pause.png');
+				}
 			}
 		}
 		.caption{

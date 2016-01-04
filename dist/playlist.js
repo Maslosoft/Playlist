@@ -1,14 +1,14 @@
 (function() {
-  var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
+  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty,
+    bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   if (!this.Maslosoft) {
     this.Maslosoft = {};
   }
 
   this.Maslosoft.Playlist = (function() {
-    var element, frameId, id, links, playlistLinks, videos;
+    var element, frameId, id, links, playlistLinks;
 
     Playlist.idCounter = 0;
 
@@ -22,17 +22,17 @@
 
     links = null;
 
-    videos = [];
+    Playlist.prototype.adapters = [];
 
-    function Playlist(element, adapters, options) {
-      this.adapters = adapters != null ? adapters : null;
-      this.options = options != null ? options : null;
-      if (!this.options) {
-        this.options = {};
+    Playlist.prototype.extractor = null;
+
+    function Playlist(element, options) {
+      if (options == null) {
+        options = null;
       }
-      if (!this.adapters) {
-        this.adapters = [Maslosoft.Playlist.Adapters.YouTube, Maslosoft.Playlist.Adapters.Vimeo];
-      }
+      this.options = new Maslosoft.Playlist.Options(options);
+      this.adapters = this.options.adapters;
+      this.extractor = new this.options.extractor;
       this.element = jQuery(element);
       if (this.element.id) {
         this.id = this.element.id;
@@ -45,8 +45,8 @@
     }
 
     Playlist.prototype.build = function() {
-      var ad, adapter, first, i, j, len, len1, link, linkElement, ref;
-      links = this.element.find('a');
+      var ad, adapter, first, i, j, len, len1, link, linkElement, placement, ref;
+      links = this.extractor.getData(this.element);
       this.element.html('<div class="maslosoft-video-embed-wrapper"> <div class="maslosoft-video-embed-container"> <iframe src="" frameborder="" webkitAllowFullScreen mozallowfullscreen allowFullScreen scrolling="no" allowtransparency="true"></iframe> </div> </div>');
       this.playlist = jQuery('<div class="maslosoft-video-playlist" />');
       this.frame = this.element.find('iframe');
@@ -57,10 +57,10 @@
         ref = this.adapters;
         for (j = 0, len1 = ref.length; j < len1; j++) {
           adapter = ref[j];
-          if (adapter.match(link.href)) {
+          if (adapter.match(link.url)) {
             ad = new adapter;
-            ad.setUrl(link.href);
-            ad.setTitle(link.innerHTML);
+            ad.setUrl(link.url);
+            ad.setTitle(link.title);
             linkElement = this.createLink(ad);
             if (first) {
               this.current = ad;
@@ -72,26 +72,47 @@
         }
       }
       this.element.append(this.playlist);
-      return this.links = this.playlist.find('a');
+      this.links = this.playlist.find('a');
+      if (typeof jQuery.fn.tooltip === 'function') {
+        placement = 'left';
+        return jQuery(".maslosoft-video-playlist").tooltip({
+          selector: 'a',
+          placement: placement
+        });
+      }
     };
 
     Playlist.prototype.createLink = function(adapter) {
-      var caption, link, thumb;
-      thumb = jQuery('<img />');
-      adapter.setThumb(thumb);
-      thumb.prop('alt', adapter.getTitle());
+      var caption, link, thumbCallback;
       caption = jQuery('<div class="caption"/>');
       caption.html(adapter.getTitle());
       link = jQuery('<a />');
-      link.prop('title', adapter.getTitle());
-      link.prop('href', adapter.getUrl());
-      link.html(thumb);
+      link.attr('id', adapter.linkId);
+      link.attr('title', adapter.getTitle());
+      link.attr('href', adapter.getUrl());
+      link.attr('rel', 'tooltip');
+      link.attr('data-placement', 'left');
+      thumbCallback = function(src) {
+        link.css('background-image', "url('" + src + "')");
+        return link.attr('title', adapter.getTitle());
+      };
+      adapter.setThumb(thumbCallback);
+      link.html('<i></i>');
+      link.on('mouseout', (function(_this) {
+        return function(e) {
+          if (typeof jQuery.fn.tooltip === 'function') {
+            return link.tooltip('hide');
+          }
+        };
+      })(this));
       link.on('click', (function(_this) {
         return function(e) {
           var loaded;
+          if (typeof jQuery.fn.tooltip === 'function') {
+            link.tooltip('hide');
+          }
           loaded = true;
           if (adapter !== _this.current) {
-            console.log('Load frame');
             _this.current = adapter;
             loaded = false;
             _this.frame.prop('src', adapter.getSrc(_this.frame));
@@ -104,9 +125,8 @@
               adapter.play(_this.frame);
               _this.links.removeClass('active playing');
               if (adapter.isPlaying()) {
-                link.addClass('active playing');
+                return link.addClass('active playing');
               }
-              return console.log('player loaded for: ' + adapter.getTitle());
             });
           }
           if (loaded) {
@@ -133,6 +153,33 @@
 
   })();
 
+  this.Maslosoft.Playlist.Options = (function() {
+    Options.prototype.adapters = [];
+
+    Options.prototype.extractor = null;
+
+    function Options(options) {
+      var i, len, name, option;
+      if (options == null) {
+        options = [];
+      }
+      this.adapters = new Array;
+      for (name = i = 0, len = options.length; i < len; name = ++i) {
+        option = options[name];
+        this[name] = option;
+      }
+      if (!this.adapters.length) {
+        this.adapters = [Maslosoft.Playlist.Adapters.YouTube, Maslosoft.Playlist.Adapters.Vimeo];
+      }
+      if (!this.extractor) {
+        this.extractor = Maslosoft.Playlist.Extractors.LinkExtractor;
+      }
+    }
+
+    return Options;
+
+  })();
+
   if (!this.Maslosoft.Playlist.Adapters) {
     this.Maslosoft.Playlist.Adapters = {};
   }
@@ -140,9 +187,11 @@
   this.Maslosoft.Playlist.Adapters.Abstract = (function() {
     var title;
 
-    function Abstract() {}
+    Abstract.idCounter = 0;
 
     Abstract.prototype.id = '';
+
+    Abstract.prototype.linkId = '';
 
     Abstract.prototype.url = '';
 
@@ -151,6 +200,11 @@
     Abstract.prototype.playing = false;
 
     title = '';
+
+    function Abstract() {
+      Abstract.idCounter++;
+      this.linkId = "maslosoft-playlist-link-" + Abstract.idCounter;
+    }
 
     Abstract.match = function(url) {};
 
@@ -170,7 +224,7 @@
       return this.title;
     };
 
-    Abstract.prototype.setThumb = function(thumb) {};
+    Abstract.prototype.setThumb = function(thumbCallback) {};
 
     Abstract.prototype.getSrc = function(frame) {
       this.frame = frame;
@@ -204,78 +258,6 @@
     this.Maslosoft.Playlist.Adapters = {};
   }
 
-  this.Maslosoft.Playlist.Adapters.YouTube = (function(superClass) {
-    extend(YouTube, superClass);
-
-    function YouTube() {
-      this.onEnd = bind(this.onEnd, this);
-      return YouTube.__super__.constructor.apply(this, arguments);
-    }
-
-    YouTube.match = function(url) {
-      return url.match('youtube');
-    };
-
-    YouTube.prototype.setUrl = function(url1) {
-      this.url = url1;
-      return this.id = this.url.replace(/.+?v=/, '');
-    };
-
-    YouTube.prototype.setThumb = function(thumb) {
-      return thumb.prop('src', "//img.youtube.com/vi/" + this.id + "/0.jpg");
-    };
-
-    YouTube.prototype.getSrc = function(frame) {
-      this.frame = frame;
-      return "//www.youtube.com/embed/" + this.id + "?enablejsapi=1";
-    };
-
-    YouTube.prototype.play = function(frame) {
-      this.frame = frame;
-      this.call('playVideo');
-      return this.playing = true;
-    };
-
-    YouTube.prototype.stop = function(frame) {
-      this.frame = frame;
-      this.call('stopVideo');
-      return this.playing = false;
-    };
-
-    YouTube.prototype.pause = function(frame) {
-      this.frame = frame;
-      this.call('pauseVideo');
-      return this.playing = false;
-    };
-
-    YouTube.prototype.onEnd = function(frame, event) {
-      this.frame = frame;
-    };
-
-    YouTube.prototype.call = function(func, args) {
-      var data, frameId, iframe, result;
-      if (args == null) {
-        args = [];
-      }
-      frameId = this.frame.get(0).id;
-      iframe = document.getElementById(frameId);
-      data = {
-        "event": "command",
-        "func": func,
-        "args": args,
-        "id": frameId
-      };
-      return result = iframe.contentWindow.postMessage(JSON.stringify(data), "*");
-    };
-
-    return YouTube;
-
-  })(this.Maslosoft.Playlist.Adapters.Abstract);
-
-  if (!this.Maslosoft.Playlist.Adapters) {
-    this.Maslosoft.Playlist.Adapters = {};
-  }
-
   this.Maslosoft.Playlist.Adapters.Vimeo = (function(superClass) {
     extend(Vimeo, superClass);
 
@@ -284,14 +266,12 @@
     }
 
     Vimeo.match = function(url) {
-      console.log('vimeo');
       return url.match('vimeo');
     };
 
     Vimeo.prototype.setUrl = function(url1) {
       this.url = url1;
-      this.id = this.url.replace(/.+\//, '');
-      return console.log(this.id);
+      return this.id = this.url.replace(/.+\//, '');
     };
 
     Vimeo.prototype.getSrc = function(frame) {
@@ -299,7 +279,7 @@
       return "//player.vimeo.com/video/" + this.id + "?api=1&player_id=" + this.frame;
     };
 
-    Vimeo.prototype.setThumb = function(thumb) {
+    Vimeo.prototype.setThumb = function(thumbCallback) {
       return $.ajax({
         type: 'GET',
         url: '//vimeo.com/api/v2/video/' + this.id + '.json',
@@ -307,9 +287,10 @@
         dataType: 'jsonp',
         success: (function(_this) {
           return function(data) {
-            var thumbnail_src;
-            thumbnail_src = data[0].thumbnail_large;
-            return thumb.prop('src', thumbnail_src);
+            if (!_this.title) {
+              _this.setTitle(data[0].title);
+            }
+            return thumbCallback(data[0].thumbnail_large);
           };
         })(this)
       });
@@ -380,6 +361,140 @@
     return Vimeo;
 
   })(this.Maslosoft.Playlist.Adapters.Abstract);
+
+  if (!this.Maslosoft.Playlist.Adapters) {
+    this.Maslosoft.Playlist.Adapters = {};
+  }
+
+  this.Maslosoft.Playlist.Adapters.YouTube = (function(superClass) {
+    extend(YouTube, superClass);
+
+    function YouTube() {
+      this.onEnd = bind(this.onEnd, this);
+      return YouTube.__super__.constructor.apply(this, arguments);
+    }
+
+    YouTube.match = function(url) {
+      return url.match('youtube');
+    };
+
+    YouTube.prototype.setUrl = function(url1) {
+      this.url = url1;
+      return this.id = this.url.replace(/.+?v=/, '');
+    };
+
+    YouTube.prototype.setThumb = function(thumbCallback) {
+      return thumbCallback("//img.youtube.com/vi/" + this.id + "/0.jpg");
+    };
+
+    YouTube.prototype.getSrc = function(frame) {
+      this.frame = frame;
+      return "//www.youtube.com/embed/" + this.id + "?enablejsapi=1";
+    };
+
+    YouTube.prototype.play = function(frame) {
+      this.frame = frame;
+      this.call('playVideo');
+      return this.playing = true;
+    };
+
+    YouTube.prototype.stop = function(frame) {
+      this.frame = frame;
+      this.call('stopVideo');
+      return this.playing = false;
+    };
+
+    YouTube.prototype.pause = function(frame) {
+      this.frame = frame;
+      this.call('pauseVideo');
+      return this.playing = false;
+    };
+
+    YouTube.prototype.onEnd = function(frame, event) {
+      this.frame = frame;
+    };
+
+    YouTube.prototype.call = function(func, args) {
+      var data, frameId, iframe, result;
+      if (args == null) {
+        args = [];
+      }
+      frameId = this.frame.get(0).id;
+      iframe = document.getElementById(frameId);
+      data = {
+        "event": "command",
+        "func": func,
+        "args": args,
+        "id": frameId
+      };
+      return result = iframe.contentWindow.postMessage(JSON.stringify(data), "*");
+    };
+
+    return YouTube;
+
+  })(this.Maslosoft.Playlist.Adapters.Abstract);
+
+  if (!this.Maslosoft.Playlist.Data) {
+    this.Maslosoft.Playlist.Data = {};
+  }
+
+  this.Maslosoft.Playlist.Data.Video = (function() {
+    function Video(options) {
+      var i, len, name, option;
+      if (options == null) {
+        options = [];
+      }
+      for (name = i = 0, len = options.length; i < len; name = ++i) {
+        option = options[name];
+        this[name] = option;
+      }
+    }
+
+    Video.prototype.title = '';
+
+    Video.prototype.url = '';
+
+    return Video;
+
+  })();
+
+  if (!this.Maslosoft.Playlist.Extractors) {
+    this.Maslosoft.Playlist.Extractors = {};
+  }
+
+  this.Maslosoft.Playlist.Extractors.Abstract = (function() {
+    function Abstract() {}
+
+    Abstract.prototype.getData = function(element) {};
+
+    return Abstract;
+
+  })();
+
+  if (!this.Maslosoft.Playlist.Extractors) {
+    this.Maslosoft.Playlist.Extractors = {};
+  }
+
+  this.Maslosoft.Playlist.Extractors.LinkExtractor = (function() {
+    function LinkExtractor() {}
+
+    LinkExtractor.prototype.getData = function(element) {
+      var d, data, i, len, link, ref;
+      data = [];
+      ref = element.find('a');
+      for (i = 0, len = ref.length; i < len; i++) {
+        link = ref[i];
+        d = new Maslosoft.Playlist.Data.Video;
+        d.url = link.href;
+        d.title = link.innerHTML;
+        data.push(d);
+      }
+      return data;
+    };
+
+    return LinkExtractor;
+
+  })();
 
 }).call(this);
 

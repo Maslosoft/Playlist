@@ -6,11 +6,19 @@ if not @Maslosoft.Playlist.Adapters
 #
 class @Maslosoft.Playlist.Adapters.Abstract
 
+	@idCounter: 0
+
 	#
 	# Video id
 	# @var string
 	#
 	id: ''
+
+	#
+	# Internal link id
+	# @var string
+	#
+	linkId: ''
 
 	#
 	# Base media URL
@@ -35,6 +43,11 @@ class @Maslosoft.Playlist.Adapters.Abstract
 	# @var string
 	#
 	title = ''
+
+	constructor: () ->
+		Abstract.idCounter++
+		@linkId = "maslosoft-playlist-link-#{Abstract.idCounter}"
+
 
 	#
 	# Return true if this adapter can handle URL
@@ -66,9 +79,9 @@ class @Maslosoft.Playlist.Adapters.Abstract
 
 	#
 	# Set preview, or thumb for embaddable media
-	# @param jQuery Img element
+	# @param function thumbCallback Callback to set thumbnail image
 	#
-	setThumb: (thumb) ->
+	setThumb: (thumbCallback) ->
 
 	#
 	# Get iframe src. This should return embbedable media iframe ready URL

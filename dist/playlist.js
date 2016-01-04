@@ -317,8 +317,10 @@
     };
 
     Vimeo.prototype.getSrc = function(frame) {
+      var frameId;
       this.frame = frame;
-      return "//player.vimeo.com/video/" + this.id + "?api=1&player_id=" + this.frame;
+      frameId = this.frame.get(0).id;
+      return "//player.vimeo.com/video/" + this.id + "?api=1&player_id=" + frameId;
     };
 
     Vimeo.prototype.setThumb = function(thumbCallback) {
@@ -357,20 +359,33 @@
     };
 
     Vimeo.prototype.onEnd = function(frame, callback) {
-      var frameId, iframe, player;
+      var e, frameId, iframe, player;
       this.frame = frame;
       frameId = this.frame.get(0).id;
       iframe = document.getElementById(frameId);
+      console.log(iframe);
       player = Froogaloop(iframe);
       console.log('Init Froogaloop... ');
-      return player.addEvent('ready', (function(_this) {
+      player.addEvent('ready', (function(_this) {
         return function() {
-          player.addEvent('finish', callback);
+          player.addEvent('finish', function(id) {
+            return callback();
+          });
           return player.addEvent('playProgress', function(data) {
             return console.log(data.seconds);
           });
         };
       })(this));
+      try {
+        player.addEvent('finish', function(id) {
+          return callback();
+        });
+        return player.addEvent('playProgress', function(data) {
+          return console.log(data.seconds);
+        });
+      } catch (_error) {
+        e = _error;
+      }
     };
 
     Vimeo.prototype.call = function(func, args) {

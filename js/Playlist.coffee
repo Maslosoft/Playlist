@@ -96,8 +96,14 @@ class @Maslosoft.Playlist
 
 					# Setup initial movie
 					if first
+						currentLink = linkElement
 						@current = ad
 						@frame.prop 'src', ad.getSrc(@frame)
+						@frame.one 'load', (e) =>
+							# Attach event on playback of current video finish
+							ad.onEnd @frame, () =>
+								@next(currentLink)
+
 						linkElement.addClass 'active'
 						first = false
 
@@ -190,6 +196,7 @@ class @Maslosoft.Playlist
 					adapter.play @frame
 
 					# Attach event on playback of current video finish
+
 					adapter.onEnd @frame, () =>
 						@next(link)
 

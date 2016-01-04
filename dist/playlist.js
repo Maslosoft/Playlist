@@ -56,7 +56,7 @@
     }
 
     Playlist.prototype.build = function() {
-      var ad, adapter, first, i, j, len, len1, link, linkElement, ref;
+      var ad, adapter, currentLink, first, i, j, len, len1, link, linkElement, ref;
       links = this.extractor.getData(this.element);
       this.element.html('<div class="maslosoft-video-embed-wrapper"> <div class="maslosoft-video-embed-container"> <iframe src="" frameborder="" webkitAllowFullScreen mozallowfullscreen allowFullScreen scrolling="no" allowtransparency="true"></iframe> </div> </div>');
       this.playlist = jQuery('<div class="maslosoft-video-playlist" />');
@@ -74,8 +74,16 @@
             ad.setTitle(link.title);
             linkElement = this.createLink(ad);
             if (first) {
+              currentLink = linkElement;
               this.current = ad;
               this.frame.prop('src', ad.getSrc(this.frame));
+              this.frame.one('load', (function(_this) {
+                return function(e) {
+                  return ad.onEnd(_this.frame, function() {
+                    return _this.next(currentLink);
+                  });
+                };
+              })(this));
               linkElement.addClass('active');
               first = false;
             }

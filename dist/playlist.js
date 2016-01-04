@@ -105,6 +105,10 @@
       index++;
       if (!this.links[index]) {
         console.log('No more videos');
+        this.links.removeClass('active playing');
+        if (this.links.get(0)) {
+          jQuery(this.links.get(0)).addClass('active');
+        }
         return;
       }
       link = this.links[index];

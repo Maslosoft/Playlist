@@ -128,6 +128,10 @@ class @Maslosoft.Playlist
 		# No more media on playlist
 		if not @links[index]
 			console.log 'No more videos'
+			@links.removeClass 'active playing'
+			# Activate first one
+			if @links.get(0)
+				jQuery(@links.get(0)).addClass 'active'
 			return
 
 		link = @links[index]
@@ -184,7 +188,7 @@ class @Maslosoft.Playlist
 				@frame.one 'load', (e) =>
 					# Play media
 					adapter.play @frame
-					
+
 					# Attach event on playback of current video finish
 					adapter.onEnd @frame, () =>
 						@next(link)

@@ -7,6 +7,18 @@ class @Maslosoft.Playlist.Adapters.Vimeo extends @Maslosoft.Playlist.Adapters.Ab
 		return url.match('vimeo')
 
 	#
+	# This is called once per adapter type. Can be used to include external
+	# libraries etc.
+	# @param Maslosoft.Playlist playlist instance
+	#
+	@once: (playlist) ->
+		# Include froogaloop2 library for easier events
+		script = document.createElement("script")
+		script.type = "text/javascript"
+		script.src = "//f.vimeocdn.com/js/froogaloop2.min.js"
+		jQuery('head').append(script)
+
+	#
 	# @param string url Embaddable media url
 	#
 	setUrl: (@url) ->
@@ -63,25 +75,17 @@ class @Maslosoft.Playlist.Adapters.Vimeo extends @Maslosoft.Playlist.Adapters.Ab
 	# @param object Iframe object
 	# @param function Function to call after finish
 	#
-	onEnd: (@frame, event) ->
-		console.log 'Attaching event onStop'
-
-		if window.addEventListener
-			window.addEventListener('message', onMsg, false)
-		else
-			window.attachEvent('onmessage', onMsg, false)
-
-		jQuery(window).on 'message', (e) =>
-			console.log 'On message...'
-
-		onMsg = (e) =>
-			console.log 'Got event:'
-			console.log e
-
-		jQuery(@frame).on 'message', (e) =>
-			data = JSON.parse e.data
-			console.log 'Received data from player...'
-			console.log data
+	onEnd: (@frame, callback) ->
+		# console.log @frame
+		# return
+		frameId = @frame.get(0).id
+		iframe = document.getElementById(frameId)
+		player = Froogaloop iframe
+		console.log 'Init Froogaloop... '
+		player.addEvent 'ready', () =>
+			player.addEvent 'finish', callback
+			player.addEvent 'playProgress', (data) ->
+				console.log data.seconds
 
 
 	#
@@ -90,8 +94,9 @@ class @Maslosoft.Playlist.Adapters.Vimeo extends @Maslosoft.Playlist.Adapters.Ab
 	# @param mixed Optional arguments
 	#
 	call: (func, args = []) ->
+		console.log "Call #{func}"
 		frameId = @frame.get(0).id
-		iframe = document.getElementById(frameId);
+		iframe = document.getElementById(frameId)
 		data = {
 			"method": func,
 			"value": args

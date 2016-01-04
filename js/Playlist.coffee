@@ -5,6 +5,8 @@ class @Maslosoft.Playlist
 
 	@idCounter = 0
 
+	@once = false
+
 	id = ''
 
 	frameId = ''
@@ -33,6 +35,12 @@ class @Maslosoft.Playlist
 
 		# Set adapters from options
 		@adapters = @options.adapters
+
+		# Init once adapters
+		if not Playlist.once
+			for adapter in @adapters
+				adapter.once @
+			Playlist.once = true
 
 		# Set extractor
 		@extractor = new @options.extractor
@@ -95,29 +103,36 @@ class @Maslosoft.Playlist
 
 
 		@element.append @playlist
+
+		# Links after build, not those which could be used as video sources
 		@links = @playlist.find 'a'
 
 		# Tooltip option (bootstrap only)
 		if typeof(jQuery.fn.tooltip) is 'function'
 
-			placement = 'left'
-
-			# Reconfigure placement
-			# if @sharer.element.hasClass 'awe-share-pin-left'
-				# placement = 'right'
-
-			# if @sharer.element.hasClass 'awe-share-pin-right'
-				# placement = 'left'
-
-			# Ovverride if custom
-			# if typeof(@data.tip) is 'string'
-				# placement = @data.tip
-
-			# Apply only to selected sharers
-			jQuery(".maslosoft-video-playlist").tooltip({
+			# Apply only to selected playlist
+			jQuery("##{@id}").tooltip({
 				selector: 'a'
-				placement: placement
+				placement: 'left'
 			});
+
+	# Sloopy next handling
+	next: (link) ->
+		link = link[0]
+		# Get next adapter
+		for l, index in @links
+			if link.id is l.id
+				break
+		index++
+
+		# No more media on playlist
+		if not @links[index]
+			console.log 'No more videos'
+			return
+
+		link = @links[index]
+		link.click()
+
 
 	createLink: (adapter) ->
 
@@ -162,15 +177,17 @@ class @Maslosoft.Playlist
 				loaded = false
 				@frame.prop 'src', adapter.getSrc(@frame)
 
+
+
 			# Play when player is loaded into iframe
 			if not loaded
 				@frame.one 'load', (e) =>
-					# Attach event on playback of current video finish
-					adapter.onEnd @frame, () =>
-						console.log 'Video finished'
-
 					# Play media
 					adapter.play @frame
+					
+					# Attach event on playback of current video finish
+					adapter.onEnd @frame, () =>
+						@next(link)
 
 					# Attach some decorations
 					@links.removeClass 'active playing'
@@ -183,6 +200,8 @@ class @Maslosoft.Playlist
 					adapter.pause @frame
 				else
 					adapter.play @frame
+					adapter.onEnd @frame, () =>
+						@next(link)
 
 			# Add some styling
 			link.addClass 'active'

@@ -56,8 +56,16 @@ class @Maslosoft.Playlist.Adapters.Abstract
 	@match = (url) ->
 
 	#
+	# This is called once per adapter type. Can be used to include external
+	# libraries etc.
+	# @param Maslosoft.Playlist playlist instance
+	#
+	@once: (playlist) ->
+
+
+	#
 	# Set url provided by user
-	# @param srting url Embaddable media url
+	# @param string url Embaddable media url
 	#
 	setUrl: (@url) ->
 

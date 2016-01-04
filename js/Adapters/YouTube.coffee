@@ -11,6 +11,18 @@ class @Maslosoft.Playlist.Adapters.YouTube extends @Maslosoft.Playlist.Adapters.
 		return url.match('youtube')
 
 	#
+	# This is called once per adapter type. Can be used to include external
+	# libraries etc.
+	# @param Maslosoft.Playlist playlist instance
+	#
+	@once: (playlist) ->
+		# Include froogaloop2 library for easier events
+		script = document.createElement("script")
+		script.type = "text/javascript"
+		script.src = "https://www.youtube.com/player_api"
+		jQuery('head').append(script)
+
+	#
 	# @param srting url Embaddable media url
 	#
 	setUrl: (@url) ->
@@ -45,8 +57,19 @@ class @Maslosoft.Playlist.Adapters.YouTube extends @Maslosoft.Playlist.Adapters.
 		@call 'pauseVideo'
 		@playing = false
 
-	onEnd: (@frame, event) =>
+	onEnd: (@frame, callback) =>
+		onStateChange = (e) ->
+			if e.data is 0
+				callback()
 
+		player = new YT.Player(@frame.get(0).id, {
+	        height: '390',
+        	width: '640',
+        	videoId: @id,
+        	events: {
+            	'onStateChange': onStateChange
+        	}
+        })
 	#
 	# Youtube specific methods
 	#

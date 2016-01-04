@@ -12,6 +12,8 @@
 
     Playlist.idCounter = 0;
 
+    Playlist.once = false;
+
     id = '';
 
     frameId = '';
@@ -27,11 +29,20 @@
     Playlist.prototype.extractor = null;
 
     function Playlist(element, options) {
+      var adapter, i, len, ref;
       if (options == null) {
         options = null;
       }
       this.options = new Maslosoft.Playlist.Options(options);
       this.adapters = this.options.adapters;
+      if (!Playlist.once) {
+        ref = this.adapters;
+        for (i = 0, len = ref.length; i < len; i++) {
+          adapter = ref[i];
+          adapter.once(this);
+        }
+        Playlist.once = true;
+      }
       this.extractor = new this.options.extractor;
       this.element = jQuery(element);
       if (this.element.id) {
@@ -45,7 +56,7 @@
     }
 
     Playlist.prototype.build = function() {
-      var ad, adapter, first, i, j, len, len1, link, linkElement, placement, ref;
+      var ad, adapter, first, i, j, len, len1, link, linkElement, ref;
       links = this.extractor.getData(this.element);
       this.element.html('<div class="maslosoft-video-embed-wrapper"> <div class="maslosoft-video-embed-container"> <iframe src="" frameborder="" webkitAllowFullScreen mozallowfullscreen allowFullScreen scrolling="no" allowtransparency="true"></iframe> </div> </div>');
       this.playlist = jQuery('<div class="maslosoft-video-playlist" />');
@@ -74,12 +85,30 @@
       this.element.append(this.playlist);
       this.links = this.playlist.find('a');
       if (typeof jQuery.fn.tooltip === 'function') {
-        placement = 'left';
-        return jQuery(".maslosoft-video-playlist").tooltip({
+        return jQuery("#" + this.id).tooltip({
           selector: 'a',
-          placement: placement
+          placement: 'left'
         });
       }
+    };
+
+    Playlist.prototype.next = function(link) {
+      var i, index, l, len, ref;
+      link = link[0];
+      ref = this.links;
+      for (index = i = 0, len = ref.length; i < len; index = ++i) {
+        l = ref[index];
+        if (link.id === l.id) {
+          break;
+        }
+      }
+      index++;
+      if (!this.links[index]) {
+        console.log('No more videos');
+        return;
+      }
+      link = this.links[index];
+      return link.click();
     };
 
     Playlist.prototype.createLink = function(adapter) {
@@ -119,10 +148,10 @@
           }
           if (!loaded) {
             _this.frame.one('load', function(e) {
-              adapter.onEnd(_this.frame, function() {
-                return console.log('Video finished');
-              });
               adapter.play(_this.frame);
+              adapter.onEnd(_this.frame, function() {
+                return _this.next(link);
+              });
               _this.links.removeClass('active playing');
               if (adapter.isPlaying()) {
                 return link.addClass('active playing');
@@ -134,6 +163,9 @@
               adapter.pause(_this.frame);
             } else {
               adapter.play(_this.frame);
+              adapter.onEnd(_this.frame, function() {
+                return _this.next(link);
+              });
             }
           }
           link.addClass('active');
@@ -208,6 +240,8 @@
 
     Abstract.match = function(url) {};
 
+    Abstract.once = function(playlist) {};
+
     Abstract.prototype.setUrl = function(url1) {
       this.url = url1;
     };
@@ -269,6 +303,14 @@
       return url.match('vimeo');
     };
 
+    Vimeo.once = function(playlist) {
+      var script;
+      script = document.createElement("script");
+      script.type = "text/javascript";
+      script.src = "//f.vimeocdn.com/js/froogaloop2.min.js";
+      return jQuery('head').append(script);
+    };
+
     Vimeo.prototype.setUrl = function(url1) {
       this.url = url1;
       return this.id = this.url.replace(/.+\//, '');
@@ -314,32 +356,19 @@
       return this.playing = false;
     };
 
-    Vimeo.prototype.onEnd = function(frame, event) {
-      var onMsg;
+    Vimeo.prototype.onEnd = function(frame, callback) {
+      var frameId, iframe, player;
       this.frame = frame;
-      console.log('Attaching event onStop');
-      if (window.addEventListener) {
-        window.addEventListener('message', onMsg, false);
-      } else {
-        window.attachEvent('onmessage', onMsg, false);
-      }
-      jQuery(window).on('message', (function(_this) {
-        return function(e) {
-          return console.log('On message...');
-        };
-      })(this));
-      onMsg = (function(_this) {
-        return function(e) {
-          console.log('Got event:');
-          return console.log(e);
-        };
-      })(this);
-      return jQuery(this.frame).on('message', (function(_this) {
-        return function(e) {
-          var data;
-          data = JSON.parse(e.data);
-          console.log('Received data from player...');
-          return console.log(data);
+      frameId = this.frame.get(0).id;
+      iframe = document.getElementById(frameId);
+      player = Froogaloop(iframe);
+      console.log('Init Froogaloop... ');
+      return player.addEvent('ready', (function(_this) {
+        return function() {
+          player.addEvent('finish', callback);
+          return player.addEvent('playProgress', function(data) {
+            return console.log(data.seconds);
+          });
         };
       })(this));
     };
@@ -349,6 +378,7 @@
       if (args == null) {
         args = [];
       }
+      console.log("Call " + func);
       frameId = this.frame.get(0).id;
       iframe = document.getElementById(frameId);
       data = {
@@ -376,6 +406,14 @@
 
     YouTube.match = function(url) {
       return url.match('youtube');
+    };
+
+    YouTube.once = function(playlist) {
+      var script;
+      script = document.createElement("script");
+      script.type = "text/javascript";
+      script.src = "https://www.youtube.com/player_api";
+      return jQuery('head').append(script);
     };
 
     YouTube.prototype.setUrl = function(url1) {
@@ -410,8 +448,22 @@
       return this.playing = false;
     };
 
-    YouTube.prototype.onEnd = function(frame, event) {
+    YouTube.prototype.onEnd = function(frame, callback) {
+      var onStateChange, player;
       this.frame = frame;
+      onStateChange = function(e) {
+        if (e.data === 0) {
+          return callback();
+        }
+      };
+      return player = new YT.Player(this.frame.get(0).id, {
+        height: '390',
+        width: '640',
+        videoId: this.id,
+        events: {
+          'onStateChange': onStateChange
+        }
+      });
     };
 
     YouTube.prototype.call = function(func, args) {

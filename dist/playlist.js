@@ -359,30 +359,24 @@
     };
 
     Vimeo.prototype.onEnd = function(frame, callback) {
-      var e, frameId, iframe, player;
+      var e, player;
       this.frame = frame;
-      frameId = this.frame.get(0).id;
-      iframe = document.getElementById(frameId);
-      console.log(iframe);
-      player = Froogaloop(iframe);
-      console.log('Init Froogaloop... ');
-      player.addEvent('ready', (function(_this) {
-        return function() {
-          player.addEvent('finish', function(id) {
-            return callback();
-          });
-          return player.addEvent('playProgress', function(data) {
-            return console.log(data.seconds);
-          });
-        };
-      })(this));
       try {
-        player.addEvent('finish', function(id) {
-          return callback();
-        });
-        return player.addEvent('playProgress', function(data) {
-          return console.log(data.seconds);
-        });
+        player = Froogaloop(this.frame.get(0));
+        try {
+          player.addEvent('ready', (function(_this) {
+            return function() {
+              return player.addEvent('finish', callback);
+            };
+          })(this));
+        } catch (_error) {
+          e = _error;
+        }
+        try {
+          return player.addEvent('finish', callback);
+        } catch (_error) {
+          e = _error;
+        }
       } catch (_error) {
         e = _error;
       }

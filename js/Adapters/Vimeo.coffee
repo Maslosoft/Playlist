@@ -77,24 +77,21 @@ class @Maslosoft.Playlist.Adapters.Vimeo extends @Maslosoft.Playlist.Adapters.Ab
 	# @param function Function to call after finish
 	#
 	onEnd: (@frame, callback) ->
-		# console.log @frame
-		# return
-
-		frameId = @frame.get(0).id
-		iframe = document.getElementById(frameId)
-		console.log iframe
-		player = Froogaloop iframe
-		console.log 'Init Froogaloop... '
-		player.addEvent 'ready', () =>
-			player.addEvent 'finish', (id) ->
-				callback()
-			player.addEvent 'playProgress', (data) ->
-				console.log data.seconds
+		# Try, try, try and still..., hate this
 		try
-			player.addEvent 'finish', (id) ->
-				callback()
-			player.addEvent 'playProgress', (data) ->
-				console.log data.seconds
+			player = Froogaloop @frame.get(0)
+			# console.log 'Init Froogaloop... '
+			try
+				player.addEvent 'ready', () =>
+					player.addEvent 'finish', callback
+					# player.addEvent 'playProgress', (data) ->
+					# 	console.log data.seconds
+			catch e
+			try
+				player.addEvent 'finish', callback
+				# player.addEvent 'playProgress', (data) ->
+				# 	console.log data.seconds
+			catch e
 		catch e
 
 	#

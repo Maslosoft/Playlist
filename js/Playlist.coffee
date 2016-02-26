@@ -5,8 +5,6 @@ class @Maslosoft.Playlist
 
 	@idCounter = 0
 
-	@once = false
-
 	id = ''
 
 	frameId = ''
@@ -35,12 +33,6 @@ class @Maslosoft.Playlist
 
 		# Set adapters from options
 		@adapters = @options.adapters
-
-		# Init once adapters
-		if not Playlist.once
-			for adapter in @adapters
-				adapter.once @
-			Playlist.once = true
 
 		# Set extractor
 		@extractor = new @options.extractor

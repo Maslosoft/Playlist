@@ -3,7 +3,8 @@ playlist = [
 	'js/Options.coffee',
 	'js/Adapters/*',
 	'js/Data/*',
-	'js/Extractors/*'
+	'js/Extractors/*',
+	'js/Helpers/*'
 ]
 less = [
 	'css/playlist.less'

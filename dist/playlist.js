@@ -12,8 +12,6 @@
 
     Playlist.idCounter = 0;
 
-    Playlist.once = false;
-
     id = '';
 
     frameId = '';
@@ -29,20 +27,11 @@
     Playlist.prototype.extractor = null;
 
     function Playlist(element, options) {
-      var adapter, i, len, ref;
       if (options == null) {
         options = null;
       }
       this.options = new Maslosoft.Playlist.Options(options);
       this.adapters = this.options.adapters;
-      if (!Playlist.once) {
-        ref = this.adapters;
-        for (i = 0, len = ref.length; i < len; i++) {
-          adapter = ref[i];
-          adapter.once(this);
-        }
-        Playlist.once = true;
-      }
       this.extractor = new this.options.extractor;
       this.element = jQuery(element);
       if (this.element.id) {
@@ -233,6 +222,8 @@
 
     Abstract.idCounter = 0;
 
+    Abstract.initialized = {};
+
     Abstract.prototype.id = '';
 
     Abstract.prototype.linkId = '';
@@ -246,8 +237,14 @@
     title = '';
 
     function Abstract() {
+      var id;
       Abstract.idCounter++;
       this.linkId = "maslosoft-playlist-link-" + Abstract.idCounter;
+      id = this.constructor.name;
+      if (!Abstract.initialized[id]) {
+        Maslosoft.Playlist.Adapters[id].once();
+        Abstract.initialized[id] = true;
+      }
     }
 
     Abstract.match = function(url) {};
@@ -566,6 +563,17 @@
     };
 
     return LinkExtractor;
+
+  })();
+
+  if (!this.Maslosoft.Playlist.Helpers) {
+    this.Maslosoft.Playlist.Helpers = {};
+  }
+
+  this.Maslosoft.Playlist.Helpers.Scroller = (function() {
+    function Scroller() {}
+
+    return Scroller;
 
   })();
 

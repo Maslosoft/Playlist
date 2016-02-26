@@ -5,8 +5,6 @@ class @Maslosoft.Playlist
 
 	@idCounter = 0
 
-	@once = false
-
 	id = ''
 
 	frameId = ''
@@ -35,12 +33,6 @@ class @Maslosoft.Playlist
 
 		# Set adapters from options
 		@adapters = @options.adapters
-
-		# Init once adapters
-		if not Playlist.once
-			for adapter in @adapters
-				adapter.once @
-			Playlist.once = true
 
 		# Set extractor
 		@extractor = new @options.extractor
@@ -262,6 +254,12 @@ class @Maslosoft.Playlist.Adapters.Abstract
 	@idCounter: 0
 
 	#
+	# Initialized adapters array
+	# @var bool[]
+	#
+	@initialized: {}
+
+	#
 	# Video id
 	# @var string
 	#
@@ -297,9 +295,15 @@ class @Maslosoft.Playlist.Adapters.Abstract
 	#
 	title = ''
 
+
 	constructor: () ->
 		Abstract.idCounter++
 		@linkId = "maslosoft-playlist-link-#{Abstract.idCounter}"
+
+		id = @constructor.name
+		if not Abstract.initialized[id]
+			Maslosoft.Playlist.Adapters[id].once()
+			Abstract.initialized[id] = true
 
 
 	#
@@ -598,3 +602,11 @@ class @Maslosoft.Playlist.Extractors.LinkExtractor
 			d.title = link.innerHTML
 			data.push d
 		return data
+
+if not @Maslosoft.Playlist.Helpers
+	@Maslosoft.Playlist.Helpers = {}
+
+class @Maslosoft.Playlist.Helpers.Scroller
+
+	constructor: () ->
+		

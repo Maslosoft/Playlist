@@ -9,6 +9,12 @@ class @Maslosoft.Playlist.Adapters.Abstract
 	@idCounter: 0
 
 	#
+	# Initialized adapters array
+	# @var bool[]
+	#
+	@initialized: {}
+
+	#
 	# Video id
 	# @var string
 	#
@@ -44,9 +50,15 @@ class @Maslosoft.Playlist.Adapters.Abstract
 	#
 	title = ''
 
+
 	constructor: () ->
 		Abstract.idCounter++
 		@linkId = "maslosoft-playlist-link-#{Abstract.idCounter}"
+
+		id = @constructor.name
+		if not Abstract.initialized[id]
+			Maslosoft.Playlist.Adapters[id].once()
+			Abstract.initialized[id] = true
 
 
 	#

@@ -25,6 +25,7 @@
   "dependencies": {
     "jquery": "~2",
     "font-awesome": "fontawesome#~4",
-    "bootstrap": "~3"
+    "bootstrap": "~3",
+    "player-api": "https://github.com/vimeo/player-api"
   }
 }

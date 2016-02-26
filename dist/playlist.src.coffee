@@ -99,8 +99,12 @@ class @Maslosoft.Playlist
 						linkElement.addClass 'active'
 						first = false
 
-
-		@element.append @playlist
+		# Playlist wrapper for proper table display and scroll holder
+		playlistWrapper = jQuery '<div class="maslosoft-video-playlist-wrapper"></div>'
+		playlistHolder = jQuery '<div class="maslosoft-video-playlist-holder"></div>'
+		playlistHolder.append(@playlist)
+		playlistWrapper.append(playlistHolder)
+		@element.append playlistWrapper
 
 		# Links after build, not those which could be used as video sources
 		@links = @playlist.find 'a'
@@ -113,6 +117,8 @@ class @Maslosoft.Playlist
 				selector: 'a'
 				placement: 'left'
 			});
+
+		new Maslosoft.Playlist.Helpers.Scroller(@frame, @playlist)
 
 	# Sloopy next handling
 	next: (link) ->
@@ -384,10 +390,10 @@ class @Maslosoft.Playlist.Adapters.Vimeo extends @Maslosoft.Playlist.Adapters.Ab
 	#
 	# This is called once per adapter type. Can be used to include external
 	# libraries etc.
-	# @param Maslosoft.Playlist playlist instance
 	#
-	@once: (playlist) ->
+	@once: () ->
 		# Include froogaloop2 library for easier events
+		if typeof(Froogaloop) isnt 'undefined' then return
 		script = document.createElement("script")
 		script.type = "text/javascript"
 		script.src = "//f.vimeocdn.com/js/froogaloop2.min.js"
@@ -499,10 +505,10 @@ class @Maslosoft.Playlist.Adapters.YouTube extends @Maslosoft.Playlist.Adapters.
 	#
 	# This is called once per adapter type. Can be used to include external
 	# libraries etc.
-	# @param Maslosoft.Playlist playlist instance
 	#
-	@once: (playlist) ->
-		# Include froogaloop2 library for easier events
+	@once: () ->
+		# Include YouTube library
+		if typeof(YT) isnt 'undefined' then return
 		script = document.createElement("script")
 		script.type = "text/javascript"
 		script.src = "https://www.youtube.com/player_api"
@@ -608,5 +614,18 @@ if not @Maslosoft.Playlist.Helpers
 
 class @Maslosoft.Playlist.Helpers.Scroller
 
-	constructor: () ->
-		
+	#
+	# Holder element instance
+	# @var jQuery
+	#
+	@holder: null
+
+	#
+	# Playlist element instance
+	# @var jQuery
+	#
+	@playlist: null
+
+	constructor: (frame, @playlist) ->
+		@holder = @playlist.parent()
+		@holder.height(frame.height())

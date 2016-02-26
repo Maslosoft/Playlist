@@ -99,8 +99,12 @@ class @Maslosoft.Playlist
 						linkElement.addClass 'active'
 						first = false
 
-
-		@element.append @playlist
+		# Playlist wrapper for proper table display and scroll holder
+		playlistWrapper = jQuery '<div class="maslosoft-video-playlist-wrapper"></div>'
+		playlistHolder = jQuery '<div class="maslosoft-video-playlist-holder"></div>'
+		playlistHolder.append(@playlist)
+		playlistWrapper.append(playlistHolder)
+		@element.append playlistWrapper
 
 		# Links after build, not those which could be used as video sources
 		@links = @playlist.find 'a'
@@ -113,6 +117,8 @@ class @Maslosoft.Playlist
 				selector: 'a'
 				placement: 'left'
 			});
+
+		new Maslosoft.Playlist.Helpers.Scroller(@frame, @playlist)
 
 	# Sloopy next handling
 	next: (link) ->

@@ -13,10 +13,10 @@ class @Maslosoft.Playlist.Adapters.YouTube extends @Maslosoft.Playlist.Adapters.
 	#
 	# This is called once per adapter type. Can be used to include external
 	# libraries etc.
-	# @param Maslosoft.Playlist playlist instance
 	#
-	@once: (playlist) ->
-		# Include froogaloop2 library for easier events
+	@once: () ->
+		# Include YouTube library
+		if typeof(YT) isnt 'undefined' then return
 		script = document.createElement("script")
 		script.type = "text/javascript"
 		script.src = "https://www.youtube.com/player_api"

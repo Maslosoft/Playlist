@@ -45,7 +45,7 @@
     }
 
     Playlist.prototype.build = function() {
-      var ad, adapter, currentLink, first, i, j, len, len1, link, linkElement, ref;
+      var ad, adapter, currentLink, first, i, j, len, len1, link, linkElement, playlistHolder, playlistWrapper, ref;
       links = this.extractor.getData(this.element);
       this.element.html('<div class="maslosoft-video-embed-wrapper"> <div class="maslosoft-video-embed-container"> <iframe src="" frameborder="" webkitAllowFullScreen mozallowfullscreen allowFullScreen scrolling="no" allowtransparency="true"></iframe> </div> </div>');
       this.playlist = jQuery('<div class="maslosoft-video-playlist" />');
@@ -79,14 +79,19 @@
           }
         }
       }
-      this.element.append(this.playlist);
+      playlistWrapper = jQuery('<div class="maslosoft-video-playlist-wrapper"></div>');
+      playlistHolder = jQuery('<div class="maslosoft-video-playlist-holder"></div>');
+      playlistHolder.append(this.playlist);
+      playlistWrapper.append(playlistHolder);
+      this.element.append(playlistWrapper);
       this.links = this.playlist.find('a');
       if (typeof jQuery.fn.tooltip === 'function') {
-        return jQuery("#" + this.id).tooltip({
+        jQuery("#" + this.id).tooltip({
           selector: 'a',
           placement: 'left'
         });
       }
+      return new Maslosoft.Playlist.Helpers.Scroller(this.frame, this.playlist);
     };
 
     Playlist.prototype.next = function(link) {
@@ -269,28 +274,28 @@
 
     Abstract.prototype.setThumb = function(thumbCallback) {};
 
-    Abstract.prototype.getSrc = function(frame) {
-      this.frame = frame;
+    Abstract.prototype.getSrc = function(frame1) {
+      this.frame = frame1;
     };
 
     Abstract.prototype.isPlaying = function() {
       return this.playing;
     };
 
-    Abstract.prototype.onEnd = function(frame, event) {
-      this.frame = frame;
+    Abstract.prototype.onEnd = function(frame1, event) {
+      this.frame = frame1;
     };
 
-    Abstract.prototype.play = function(frame) {
-      this.frame = frame;
+    Abstract.prototype.play = function(frame1) {
+      this.frame = frame1;
     };
 
-    Abstract.prototype.stop = function(frame) {
-      this.frame = frame;
+    Abstract.prototype.stop = function(frame1) {
+      this.frame = frame1;
     };
 
-    Abstract.prototype.pause = function(frame) {
-      this.frame = frame;
+    Abstract.prototype.pause = function(frame1) {
+      this.frame = frame1;
     };
 
     return Abstract;
@@ -312,8 +317,11 @@
       return url.match('vimeo');
     };
 
-    Vimeo.once = function(playlist) {
+    Vimeo.once = function() {
       var script;
+      if (typeof Froogaloop !== 'undefined') {
+        return;
+      }
       script = document.createElement("script");
       script.type = "text/javascript";
       script.src = "//f.vimeocdn.com/js/froogaloop2.min.js";
@@ -325,9 +333,9 @@
       return this.id = this.url.replace(/.+\//, '');
     };
 
-    Vimeo.prototype.getSrc = function(frame) {
+    Vimeo.prototype.getSrc = function(frame1) {
       var frameId;
-      this.frame = frame;
+      this.frame = frame1;
       frameId = this.frame.get(0).id;
       return "//player.vimeo.com/video/" + this.id + "?api=1&player_id=" + frameId;
     };
@@ -349,27 +357,27 @@
       });
     };
 
-    Vimeo.prototype.play = function(frame) {
-      this.frame = frame;
+    Vimeo.prototype.play = function(frame1) {
+      this.frame = frame1;
       this.call('play');
       return this.playing = true;
     };
 
-    Vimeo.prototype.stop = function(frame) {
-      this.frame = frame;
+    Vimeo.prototype.stop = function(frame1) {
+      this.frame = frame1;
       this.call('unload');
       return this.playing = false;
     };
 
-    Vimeo.prototype.pause = function(frame) {
-      this.frame = frame;
+    Vimeo.prototype.pause = function(frame1) {
+      this.frame = frame1;
       this.call('pause');
       return this.playing = false;
     };
 
-    Vimeo.prototype.onEnd = function(frame, callback) {
+    Vimeo.prototype.onEnd = function(frame1, callback) {
       var e, player;
-      this.frame = frame;
+      this.frame = frame1;
       try {
         player = Froogaloop(this.frame.get(0));
         try {
@@ -426,8 +434,11 @@
       return url.match('youtube');
     };
 
-    YouTube.once = function(playlist) {
+    YouTube.once = function() {
       var script;
+      if (typeof YT !== 'undefined') {
+        return;
+      }
       script = document.createElement("script");
       script.type = "text/javascript";
       script.src = "https://www.youtube.com/player_api";
@@ -443,32 +454,32 @@
       return thumbCallback("//img.youtube.com/vi/" + this.id + "/0.jpg");
     };
 
-    YouTube.prototype.getSrc = function(frame) {
-      this.frame = frame;
+    YouTube.prototype.getSrc = function(frame1) {
+      this.frame = frame1;
       return "//www.youtube.com/embed/" + this.id + "?enablejsapi=1";
     };
 
-    YouTube.prototype.play = function(frame) {
-      this.frame = frame;
+    YouTube.prototype.play = function(frame1) {
+      this.frame = frame1;
       this.call('playVideo');
       return this.playing = true;
     };
 
-    YouTube.prototype.stop = function(frame) {
-      this.frame = frame;
+    YouTube.prototype.stop = function(frame1) {
+      this.frame = frame1;
       this.call('stopVideo');
       return this.playing = false;
     };
 
-    YouTube.prototype.pause = function(frame) {
-      this.frame = frame;
+    YouTube.prototype.pause = function(frame1) {
+      this.frame = frame1;
       this.call('pauseVideo');
       return this.playing = false;
     };
 
-    YouTube.prototype.onEnd = function(frame, callback) {
+    YouTube.prototype.onEnd = function(frame1, callback) {
       var onStateChange, player;
-      this.frame = frame;
+      this.frame = frame1;
       onStateChange = function(e) {
         if (e.data === 0) {
           return callback();
@@ -571,7 +582,15 @@
   }
 
   this.Maslosoft.Playlist.Helpers.Scroller = (function() {
-    function Scroller() {}
+    Scroller.holder = null;
+
+    Scroller.playlist = null;
+
+    function Scroller(frame, playlist1) {
+      this.playlist = playlist1;
+      this.holder = this.playlist.parent();
+      this.holder.height(frame.height());
+    }
 
     return Scroller;
 

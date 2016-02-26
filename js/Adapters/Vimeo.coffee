@@ -9,10 +9,10 @@ class @Maslosoft.Playlist.Adapters.Vimeo extends @Maslosoft.Playlist.Adapters.Ab
 	#
 	# This is called once per adapter type. Can be used to include external
 	# libraries etc.
-	# @param Maslosoft.Playlist playlist instance
 	#
-	@once: (playlist) ->
+	@once: () ->
 		# Include froogaloop2 library for easier events
+		if typeof(Froogaloop) isnt 'undefined' then return
 		script = document.createElement("script")
 		script.type = "text/javascript"
 		script.src = "//f.vimeocdn.com/js/froogaloop2.min.js"

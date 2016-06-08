@@ -119,6 +119,7 @@ class @Maslosoft.Playlist
 			});
 
 		new Maslosoft.Playlist.Helpers.Scroller(@frame, @playlist)
+		return true
 
 	# Sloopy next handling
 	next: (link) ->

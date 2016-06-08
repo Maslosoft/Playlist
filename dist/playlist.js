@@ -91,7 +91,8 @@
           placement: 'left'
         });
       }
-      return new Maslosoft.Playlist.Helpers.Scroller(this.frame, this.playlist);
+      new Maslosoft.Playlist.Helpers.Scroller(this.frame, this.playlist);
+      return true;
     };
 
     Playlist.prototype.next = function(link) {

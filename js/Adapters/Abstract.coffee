@@ -98,7 +98,7 @@ class @Maslosoft.Playlist.Adapters.Abstract
 
 
 	#
-	# Set preview, or thumb for embaddable media
+	# Set preview, or thumb for embeddable media
 	# @param function thumbCallback Callback to set thumbnail image
 	#
 	setThumb: (thumbCallback) ->

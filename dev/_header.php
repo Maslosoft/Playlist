@@ -5,6 +5,12 @@ if (isset($_GET['bs']) && $_GET['bs'] == false)
 {
 	$bs = false;
 };
+// Minified switch
+$min = true;
+if (isset($_GET['min']) && $_GET['min'] == false)
+{
+	$min = false;
+};
 ?>
 <!DOCTYPE html>
 <html>
@@ -53,8 +59,12 @@ if (isset($_GET['bs']) && $_GET['bs'] == false)
 
 		<script type="text/javascript" src="../bower_components/jquery/dist/jquery.min.js"></script>
 		<script type="text/javascript" src="../bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
-		<script type="text/javascript" src="../dist/playlist.js"></script>
-		<!--<script type="text/javascript" src="../dist/lang/pl.js"></script>-->
+		<?php if ($min): ?>
+			<script type="text/javascript" src="../dist/playlist.min.js"></script>
+		<?php else: ?>
+			<script type="text/javascript" src="../dist/playlist.js"></script>
+		<?php endif; ?>
+	<!--<script type="text/javascript" src="../dist/lang/pl.js"></script>-->
 		<?php
 		$simple = [];
 		$combined = [];
@@ -93,6 +103,11 @@ if (isset($_GET['bs']) && $_GET['bs'] == false)
 					<a href="?bs=0">Disable twitter bootstrap</a>
 				<?php else: ?>
 					<a href="?bs=1">Enable twitter bootstrap</a>
+				<?php endif; ?>
+				<?php if ($min): ?>
+					<a href="?min=0">Use uncompressed</a>
+				<?php else: ?>
+					<a href="?min=1">Use minified version</a>
 				<?php endif; ?>
 				<ul>
 					<li class="link">

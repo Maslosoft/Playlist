@@ -24,6 +24,8 @@ module.exports = (grunt) ->
 					'dist/playlist.js': playlist
 				]
 		uglify:
+			options:
+				mangle: false
 			compile:
 				files:
 					'dist/playlist.min.js' : ['dist/playlist.js']

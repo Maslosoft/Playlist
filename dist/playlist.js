@@ -45,7 +45,7 @@
     }
 
     Playlist.prototype.build = function() {
-      var ad, adapter, currentLink, first, i, j, len, len1, link, linkElement, playlistHolder, playlistWrapper, ref;
+      var ad, adapter, currentLink, first, i, initScroller, j, len, len1, link, linkElement, playlistHolder, playlistWrapper, ref;
       links = this.extractor.getData(this.element);
       this.element.html('<div class="maslosoft-video-embed-wrapper"> <div class="maslosoft-video-embed-container"> <iframe src="" frameborder="" webkitAllowFullScreen mozallowfullscreen allowFullScreen scrolling="no" allowtransparency="true"></iframe> </div> </div>');
       this.playlist = jQuery('<div class="maslosoft-video-playlist" />');
@@ -91,12 +91,14 @@
           placement: 'left'
         });
       }
-      this.frame.on('load', (function(_this) {
+      initScroller = (function(_this) {
         return function(e) {
           return new Maslosoft.Playlist.Helpers.Scroller(_this.element, _this.playlist);
         };
-      })(this));
-      new Maslosoft.Playlist.Helpers.Scroller(this.element, this.playlist);
+      })(this);
+      this.frame.on('load', initScroller);
+      jQuery(window).on('resize', initScroller);
+      initScroller();
       return true;
     };
 

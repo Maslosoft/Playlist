@@ -118,12 +118,15 @@ class @Maslosoft.Playlist
 				placement: 'left'
 			});
 
-		@frame.on 'load', (e) =>
-					
-			# Re calculate scroller for ajax loaded content
+		initScroller = (e) =>
 			new Maslosoft.Playlist.Helpers.Scroller(@element, @playlist)
 			
-		new Maslosoft.Playlist.Helpers.Scroller(@element, @playlist)
+		# Re calculate scroller for ajax loaded content
+		@frame.on 'load', initScroller
+			
+		jQuery(window).on 'resize', initScroller
+			
+		initScroller()
 		return true
 
 	# Sloopy next handling

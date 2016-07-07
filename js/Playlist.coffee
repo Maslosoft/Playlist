@@ -108,6 +108,11 @@ class @Maslosoft.Playlist
 
 		# Links after build, not those which could be used as video sources
 		@links = @playlist.find 'a'
+		
+		# Just one video, remove side links
+		if @links.length is 1
+			@element.find('.maslosoft-video-playlist-wrapper').remove()
+			@element.find('.maslosoft-video-embed-wrapper').css('width', '100%')
 
 		# Tooltip option (bootstrap only)
 		if typeof(jQuery.fn.tooltip) is 'function'

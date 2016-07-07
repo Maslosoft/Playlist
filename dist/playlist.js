@@ -85,6 +85,10 @@
       playlistWrapper.append(playlistHolder);
       this.element.append(playlistWrapper);
       this.links = this.playlist.find('a');
+      if (this.links.length === 1) {
+        this.element.find('.maslosoft-video-playlist-wrapper').remove();
+        this.element.find('.maslosoft-video-embed-wrapper').css('width', '100%');
+      }
       if (typeof jQuery.fn.tooltip === 'function') {
         jQuery("#" + this.id).tooltip({
           selector: 'a',

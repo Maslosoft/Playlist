@@ -413,18 +413,25 @@
     };
 
     Vimeo.prototype.call = function(func, args) {
-      var data, frameId, iframe, result;
+      var toCall;
       if (args == null) {
         args = [];
       }
-      console.log("Call " + func);
-      frameId = this.frame.get(0).id;
-      iframe = document.getElementById(frameId);
-      data = {
-        "method": func,
-        "value": args
-      };
-      return result = iframe.contentWindow.postMessage(JSON.stringify(data), "*");
+      toCall = (function(_this) {
+        return function() {
+          var data, frameId, iframe, result;
+          console.log("Call " + func);
+          frameId = _this.frame.get(0).id;
+          iframe = document.getElementById(frameId);
+          data = {
+            "method": func,
+            "value": args
+          };
+          return result = iframe.contentWindow.postMessage(JSON.stringify(data), "*");
+        };
+      })(this);
+      setTimeout(toCall, 0);
+      return setTimeout(toCall, 500);
     };
 
     return Vimeo;
@@ -509,19 +516,26 @@
     };
 
     YouTube.prototype.call = function(func, args) {
-      var data, frameId, iframe, result;
+      var toCall;
       if (args == null) {
         args = [];
       }
-      frameId = this.frame.get(0).id;
-      iframe = document.getElementById(frameId);
-      data = {
-        "event": "command",
-        "func": func,
-        "args": args,
-        "id": frameId
-      };
-      return result = iframe.contentWindow.postMessage(JSON.stringify(data), "*");
+      toCall = (function(_this) {
+        return function() {
+          var data, frameId, iframe, result;
+          frameId = _this.frame.get(0).id;
+          iframe = document.getElementById(frameId);
+          data = {
+            "event": "command",
+            "func": func,
+            "args": args,
+            "id": frameId
+          };
+          return result = iframe.contentWindow.postMessage(JSON.stringify(data), "*");
+        };
+      })(this);
+      setTimeout(toCall, 0);
+      return setTimeout(toCall, 500);
     };
 
     return YouTube;

@@ -497,15 +497,21 @@ class @Maslosoft.Playlist.Adapters.Vimeo extends @Maslosoft.Playlist.Adapters.Ab
 	# @param mixed Optional arguments
 	#
 	call: (func, args = []) ->
-		console.log "Call #{func}"
-		frameId = @frame.get(0).id
-		iframe = document.getElementById(frameId)
-		data = {
-			"method": func,
-			"value": args
-		}
-		result = iframe.contentWindow.postMessage(JSON.stringify(data), "*")
-
+		toCall = () =>
+			console.log "Call #{func}"
+			frameId = @frame.get(0).id
+			iframe = document.getElementById(frameId)
+			data = {
+				"method": func,
+				"value": args
+			}
+			result = iframe.contentWindow.postMessage(JSON.stringify(data), "*")
+		setTimeout toCall, 0
+		
+		# Call it again, as sometimes it lags and nothing happens...
+		setTimeout toCall, 500
+		
+		
 if not @Maslosoft.Playlist.Adapters
 	@Maslosoft.Playlist.Adapters = {}
 
@@ -582,15 +588,21 @@ class @Maslosoft.Playlist.Adapters.YouTube extends @Maslosoft.Playlist.Adapters.
 	# Youtube specific methods
 	#
 	call: (func, args = []) ->
-		frameId = @frame.get(0).id
-		iframe = document.getElementById(frameId);
-		data = {
-			"event": "command",
-			"func": func,
-			"args": args,
-			"id": frameId
-		}
-		result = iframe.contentWindow.postMessage(JSON.stringify(data), "*")
+		toCall = () =>
+			frameId = @frame.get(0).id
+			iframe = document.getElementById(frameId);
+			data = {
+				"event": "command",
+				"func": func,
+				"args": args,
+				"id": frameId
+			}
+			result = iframe.contentWindow.postMessage(JSON.stringify(data), "*")
+		
+		setTimeout toCall, 0
+		
+		# Call it again, as sometimes it lags and nothing happens...
+		setTimeout toCall, 500
 
 if not @Maslosoft.Playlist.Data
 	@Maslosoft.Playlist.Data = {}

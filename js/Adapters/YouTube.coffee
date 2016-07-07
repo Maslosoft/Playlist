@@ -74,12 +74,18 @@ class @Maslosoft.Playlist.Adapters.YouTube extends @Maslosoft.Playlist.Adapters.
 	# Youtube specific methods
 	#
 	call: (func, args = []) ->
-		frameId = @frame.get(0).id
-		iframe = document.getElementById(frameId);
-		data = {
-			"event": "command",
-			"func": func,
-			"args": args,
-			"id": frameId
-		}
-		result = iframe.contentWindow.postMessage(JSON.stringify(data), "*")
+		toCall = () =>
+			frameId = @frame.get(0).id
+			iframe = document.getElementById(frameId);
+			data = {
+				"event": "command",
+				"func": func,
+				"args": args,
+				"id": frameId
+			}
+			result = iframe.contentWindow.postMessage(JSON.stringify(data), "*")
+		
+		setTimeout toCall, 0
+		
+		# Call it again, as sometimes it lags and nothing happens...
+		setTimeout toCall, 500

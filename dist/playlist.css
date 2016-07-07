@@ -16,6 +16,8 @@ maslosoft-playlist,
 maslosoft-playlist .maslosoft-video-embed-wrapper,
 .maslosoft-playlist .maslosoft-video-embed-wrapper {
   display: table-cell;
+  width: 75%;
+  vertical-align: top;
 }
 maslosoft-playlist .maslosoft-video-embed-wrapper .maslosoft-video-embed-container,
 .maslosoft-playlist .maslosoft-video-embed-wrapper .maslosoft-video-embed-container {
@@ -50,12 +52,9 @@ maslosoft-playlist .maslosoft-video-pause,
 maslosoft-playlist .maslosoft-video-playlist-wrapper,
 .maslosoft-playlist .maslosoft-video-playlist-wrapper {
   display: table-cell;
-  min-width: 120px;
+  min-width: 60px;
   width: 15%;
-}
-maslosoft-playlist .maslosoft-video-playlist-holder,
-.maslosoft-playlist .maslosoft-video-playlist-holder {
-  overflow-y: scroll;
+  background: black;
 }
 maslosoft-playlist .maslosoft-video-playlist,
 .maslosoft-playlist .maslosoft-video-playlist {

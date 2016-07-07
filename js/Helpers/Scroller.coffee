@@ -15,6 +15,11 @@ class @Maslosoft.Playlist.Helpers.Scroller
 	#
 	@playlist: null
 
-	constructor: (frame, @playlist) ->
-		@holder = @playlist.parent()
-		@holder.height(frame.height())
+	constructor: (element, @playlist) ->
+		applyHeight = () =>
+			frame = element.find('.maslosoft-video-embed-container iframe')
+			@holder = @playlist.parent()
+			console.log frame.height()
+			@holder.height(frame.height())
+			@holder.css('overflowY': 'auto')
+		setTimeout applyHeight, 0

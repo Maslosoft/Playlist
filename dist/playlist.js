@@ -91,7 +91,12 @@
           placement: 'left'
         });
       }
-      new Maslosoft.Playlist.Helpers.Scroller(this.frame, this.playlist);
+      this.frame.on('load', (function(_this) {
+        return function(e) {
+          return new Maslosoft.Playlist.Helpers.Scroller(_this.element, _this.playlist);
+        };
+      })(this));
+      new Maslosoft.Playlist.Helpers.Scroller(this.element, this.playlist);
       return true;
     };
 
@@ -128,6 +133,7 @@
       link.attr('href', adapter.getUrl());
       link.attr('rel', 'tooltip');
       link.attr('data-placement', 'left');
+      link.attr('data-html', true);
       thumbCallback = function(src) {
         link.css('background-image', "url('" + src + "')");
         return link.attr('title', adapter.getTitle());
@@ -587,10 +593,22 @@
 
     Scroller.playlist = null;
 
-    function Scroller(frame, playlist1) {
+    function Scroller(element, playlist1) {
+      var applyHeight;
       this.playlist = playlist1;
-      this.holder = this.playlist.parent();
-      this.holder.height(frame.height());
+      applyHeight = (function(_this) {
+        return function() {
+          var frame;
+          frame = element.find('.maslosoft-video-embed-container iframe');
+          _this.holder = _this.playlist.parent();
+          console.log(frame.height());
+          _this.holder.height(frame.height());
+          return _this.holder.css({
+            'overflowY': 'auto'
+          });
+        };
+      })(this);
+      setTimeout(applyHeight, 0);
     }
 
     return Scroller;

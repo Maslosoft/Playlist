@@ -118,7 +118,12 @@ class @Maslosoft.Playlist
 				placement: 'left'
 			});
 
-		new Maslosoft.Playlist.Helpers.Scroller(@frame, @playlist)
+		@frame.on 'load', (e) =>
+					
+			# Re calculate scroller for ajax loaded content
+			new Maslosoft.Playlist.Helpers.Scroller(@element, @playlist)
+			
+		new Maslosoft.Playlist.Helpers.Scroller(@element, @playlist)
 		return true
 
 	# Sloopy next handling
@@ -156,6 +161,7 @@ class @Maslosoft.Playlist
 		link.attr 'href', adapter.getUrl()
 		link.attr 'rel', 'tooltip'
 		link.attr 'data-placement', 'left'
+		link.attr 'data-html', true
 
 		thumbCallback = (src) ->
 			link.css 'background-image', "url('#{src}')"
@@ -191,6 +197,7 @@ class @Maslosoft.Playlist
 			# Play when player is loaded into iframe
 			if not loaded
 				@frame.one 'load', (e) =>
+					
 					# Play media
 					adapter.play @frame
 

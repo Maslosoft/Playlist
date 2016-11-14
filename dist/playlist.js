@@ -92,7 +92,8 @@
       if (typeof jQuery.fn.tooltip === 'function') {
         jQuery("#" + this.id).tooltip({
           selector: 'a',
-          placement: 'left'
+          placement: 'left',
+          container: 'body'
         });
       }
       initScroller = (function(_this) {
@@ -618,14 +619,17 @@
       this.playlist = playlist1;
       applyHeight = (function(_this) {
         return function() {
-          var frame;
+          var container, frame, height, list;
           frame = element.find('.maslosoft-video-embed-container iframe');
           _this.holder = _this.playlist.parent();
-          console.log(frame.height());
           _this.holder.height(frame.height());
-          return _this.holder.css({
-            'overflowY': 'auto'
+          list = element.find('.maslosoft-video-playlist');
+          height = list.height();
+          list.css({
+            'height': height + "px"
           });
+          container = element.find('.maslosoft-video-playlist-holder');
+          return Ps.initialize(container.get(0));
         };
       })(this);
       setTimeout(applyHeight, 0);

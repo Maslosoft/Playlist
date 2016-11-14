@@ -1,13 +1,13 @@
 <?php
 $text = ob_get_flush();
 ?>
-				<script>
+<script>
 	jQuery(document).ready(function () {
 		jQuery('.maslosoft-playlist').each(function (index) {
 			new Maslosoft.Playlist(this);
 		});
 	});
-				</script>
+</script>
 </div>
 </body>
 </html>

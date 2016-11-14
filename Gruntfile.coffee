@@ -6,9 +6,11 @@ playlist = [
 	'js/Extractors/*',
 	'js/Helpers/*'
 ]
-less = [
-	'css/playlist.less'
+sass = [
+	'css/playlist.scss'
 ]
+watchSass = sass.slice 0
+watchSass.push 'css/ps/*'
 
 module.exports = (grunt) ->
 
@@ -33,21 +35,21 @@ module.exports = (grunt) ->
 			compile:
 				files: playlist
 				tasks: ['coffee:compile']
-			less:
-				files: less
-				tasks: ['less:compile']
-		less:
+			sass:
+				files: watchSass
+				tasks: ['sass:compile']
+		sass:
 			compile:
 				files:
-					'dist/playlist.css' : less
+					'dist/playlist.css' : sass
 				options:
-					sourceMap: true
+					require: './data_url.rb'
 
 	# These plugins provide necessary tasks.
 	grunt.loadNpmTasks 'grunt-contrib-coffee'
 	grunt.loadNpmTasks 'grunt-contrib-watch'
 	grunt.loadNpmTasks 'grunt-contrib-uglify'
-	grunt.loadNpmTasks 'grunt-contrib-less'
+	grunt.loadNpmTasks 'grunt-contrib-sass'
 
 	# Default task.
-	grunt.registerTask 'default', ['coffee', 'less', 'uglify']
+	grunt.registerTask 'default', ['coffee', 'sass', 'uglify']

@@ -121,6 +121,7 @@ class @Maslosoft.Playlist
 			jQuery("##{@id}").tooltip({
 				selector: 'a'
 				placement: 'left'
+				container: 'body'
 			});
 
 		initScroller = (e) =>

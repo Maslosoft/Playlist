@@ -27,5 +27,8 @@
     "font-awesome": "fontawesome#~4",
     "bootstrap": "~3",
     "perfect-scrollbar": "^0.6.12"
+  },
+  "devDependencies": {
+    "perfect-scrollbar": "^0.6.14"
   }
 }

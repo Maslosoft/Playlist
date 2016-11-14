@@ -3,3 +3,4 @@ npm-debug.log
 /nbproject/private/
 /nbproject/
 /bower_components
+.sass-cache

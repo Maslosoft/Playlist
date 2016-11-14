@@ -8,11 +8,26 @@ and open the template in the editor.
     Author     : Piotr Maselkowski <pmaselkowski at gmail.com>
 */
 
+@import 'ps/main.scss';
+
 // Allow initialization via custom element
 maslosoft-playlist, .maslosoft-playlist{
 	margin: 10px 0px;
 	width:100%;
 	display:table;
+	overflow: hidden;
+	// Scrollbar disable transitions
+	// or will pop out when rounded
+	.ps-container > .ps-scrollbar-y-rail{
+		transition: none;
+	}
+	.ps-container.ps-in-scrolling.ps-y > .ps-scrollbar-y-rail{
+		transition: none;
+		.ps-scrollbar-y{
+		transition: none;
+		}
+	}
+
 	.maslosoft-video-embed-wrapper{
 		display:table-cell;
 		width:75%;
@@ -24,6 +39,7 @@ maslosoft-playlist, .maslosoft-playlist{
 			padding-bottom: 56.25%;
 			height: 0;
 			margin:0;
+			z-index: 10;
 			iframe, object, embed{
 				position: absolute;
 				top: 0;
@@ -31,24 +47,32 @@ maslosoft-playlist, .maslosoft-playlist{
 				width: 100%;
 				height: 100%;
 				border:none;
+				overflow:hidden;
+				z-index: 9;
 			}
 		}
 	}
 	.maslosoft-video-play{
-		background-image: data-uri('image/png', 'play.png');
+		background-image: data_url('css/play.png');
 	}
 	.maslosoft-video-pause{
-		background-image: data-uri('image/png', 'pause.png');
+		background-image: data_url('css/pause.png');
 	}
 	.maslosoft-video-playlist-wrapper{
 		display: table-cell;
 		min-width: 60px;
 		width: 15%;
 		background: black;
+		z-index: 11;
+		.tooltip{
+			position: absolute;
+			z-index: 12;
+		}
 	}
 	.maslosoft-video-playlist-holder{
 		// Need to add this via JS
-		//overflow-y: auto;
+		overflow-y: hidden;
+		position: relative;
 	}
 	.maslosoft-video-playlist{
 		background:black;
@@ -73,7 +97,7 @@ maslosoft-playlist, .maslosoft-playlist{
 			&.active, &:hover{
 				opacity:1;
 				i{
-					background-image: data-uri('../css/play.png');
+					background-image: data_url('css/play.png');
 				}
 			}
 			&:hover{
@@ -84,7 +108,7 @@ maslosoft-playlist, .maslosoft-playlist{
 			}
 			&.playing{
 				i{
-					background-image: data-uri('../css/pause.png');
+					background-image: data_url('css/pause.png');
 				}
 			}
 		}

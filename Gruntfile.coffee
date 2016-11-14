@@ -12,6 +12,14 @@ sass = [
 watchSass = sass.slice 0
 watchSass.push 'css/ps/*'
 
+dev = [
+	'bower_components/perfect-scrollbar/js/perfect-scrollbar.js'
+	'dist/playlist-standalone.js'
+]
+min = [
+	'bower_components/perfect-scrollbar/js/perfect-scrollbar.min.js'
+	'dist/playlist-standalone.min.js'
+]
 module.exports = (grunt) ->
 
 	# Project configuration.
@@ -23,18 +31,25 @@ module.exports = (grunt) ->
 					join: true
 					expand: true
 				files: [
-					'dist/playlist.js': playlist
+					'dist/playlist-standalone.js': playlist
 				]
 		uglify:
 			options:
 				mangle: false
 			compile:
 				files:
-					'dist/playlist.min.js' : ['dist/playlist.js']
+					'dist/playlist-standalone.min.js' : ['dist/playlist-standalone.js']
+		concat:
+			min:
+				src: min
+				dest: 'dist/playlist.min.js'
+			dev:
+				src: dev
+				dest: 'dist/playlist.js'
 		watch:
 			compile:
 				files: playlist
-				tasks: ['coffee:compile']
+				tasks: ['coffee:compile', 'concat:dev']
 			sass:
 				files: watchSass
 				tasks: ['sass:compile']
@@ -48,8 +63,9 @@ module.exports = (grunt) ->
 	# These plugins provide necessary tasks.
 	grunt.loadNpmTasks 'grunt-contrib-coffee'
 	grunt.loadNpmTasks 'grunt-contrib-watch'
+	grunt.loadNpmTasks 'grunt-contrib-concat'
 	grunt.loadNpmTasks 'grunt-contrib-uglify'
 	grunt.loadNpmTasks 'grunt-contrib-sass'
 
 	# Default task.
-	grunt.registerTask 'default', ['coffee', 'sass', 'uglify']
+	grunt.registerTask 'default', ['coffee', 'sass', 'uglify', 'concat']

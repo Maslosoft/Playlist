@@ -55,12 +55,10 @@ if (isset($_GET['min']) && $_GET['min'] == false)
 			<link rel="stylesheet" href="../bower_components/bootstrap/dist/css/bootstrap-theme.min.css">
 		<?php endif; ?>
 		<link rel="stylesheet" href="../bower_components/font-awesome/css/font-awesome.min.css">
-		<link rel="stylesheet" href="../bower_components/perfect-scrollbar/css/perfect-scrollbar.css">
 		<link rel="stylesheet" href="../dist/playlist.css" />
 
 		<script type="text/javascript" src="../bower_components/jquery/dist/jquery.min.js"></script>
 		<script type="text/javascript" src="../bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
-		<script type="text/javascript" src="../bower_components/perfect-scrollbar/js/perfect-scrollbar.js"></script>
 		<?php if ($min): ?>
 			<script type="text/javascript" src="../dist/playlist.min.js"></script>
 		<?php else: ?>

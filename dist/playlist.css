@@ -11,11 +11,10 @@ and open the template in the editor.
   -ms-touch-action: auto;
   touch-action: auto;
   overflow: hidden !important;
-  -ms-overflow-style: none;
-  /*  // Edge
-    @supports (-ms-overflow-style: none) {
-      overflow: auto !important;
-    }*/ }
+  -ms-overflow-style: none; }
+  @supports (-ms-overflow-style: none) {
+    .ps-container {
+      overflow: auto !important; } }
   @media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
     .ps-container {
       overflow: auto !important; } }
@@ -26,13 +25,13 @@ and open the template in the editor.
     background-color: #eee;
     opacity: 0.9; }
     .ps-container.ps-in-scrolling.ps-x > .ps-scrollbar-x-rail > .ps-scrollbar-x {
-      background-color: #000;
+      background-color: #999;
       height: 11px; }
   .ps-container.ps-in-scrolling.ps-y > .ps-scrollbar-y-rail {
     background-color: #eee;
     opacity: 0.9; }
     .ps-container.ps-in-scrolling.ps-y > .ps-scrollbar-y-rail > .ps-scrollbar-y {
-      background-color: #000;
+      background-color: #999;
       width: 11px; }
   .ps-container > .ps-scrollbar-x-rail {
     display: none;
@@ -46,7 +45,7 @@ and open the template in the editor.
     .ps-container > .ps-scrollbar-x-rail > .ps-scrollbar-x {
       position: absolute;
       /* please don't change 'position' */
-      background-color: #000;
+      background-color: #aaa;
       border-radius: 6px;
       transition: background-color .2s linear, height .2s linear, width .2s ease-in-out, border-radius .2s ease-in-out;
       bottom: 2px;
@@ -66,7 +65,7 @@ and open the template in the editor.
     .ps-container > .ps-scrollbar-y-rail > .ps-scrollbar-y {
       position: absolute;
       /* please don't change 'position' */
-      background-color: #000;
+      background-color: #aaa;
       border-radius: 6px;
       transition: background-color .2s linear, height .2s linear, width .2s ease-in-out, border-radius .2s ease-in-out;
       right: 2px;
@@ -78,13 +77,13 @@ and open the template in the editor.
     background-color: #eee;
     opacity: 0.9; }
     .ps-container:hover.ps-in-scrolling.ps-x > .ps-scrollbar-x-rail > .ps-scrollbar-x {
-      background-color: #000;
+      background-color: #999;
       height: 11px; }
   .ps-container:hover.ps-in-scrolling.ps-y > .ps-scrollbar-y-rail {
     background-color: #eee;
     opacity: 0.9; }
     .ps-container:hover.ps-in-scrolling.ps-y > .ps-scrollbar-y-rail > .ps-scrollbar-y {
-      background-color: #000;
+      background-color: #999;
       width: 11px; }
   .ps-container:hover > .ps-scrollbar-x-rail,
   .ps-container:hover > .ps-scrollbar-y-rail {
@@ -93,12 +92,12 @@ and open the template in the editor.
     background-color: #eee;
     opacity: 0.9; }
     .ps-container:hover > .ps-scrollbar-x-rail:hover > .ps-scrollbar-x {
-      background-color: #000; }
+      background-color: #999; }
   .ps-container:hover > .ps-scrollbar-y-rail:hover {
     background-color: #eee;
     opacity: 0.9; }
     .ps-container:hover > .ps-scrollbar-y-rail:hover > .ps-scrollbar-y {
-      background-color: #000; }
+      background-color: #999; }
 
 maslosoft-playlist, .maslosoft-playlist {
   margin: 10px 0px;

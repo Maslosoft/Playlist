@@ -48,10 +48,10 @@
   overflow: hidden !important;
   -ms-overflow-style: none;
 
-/*  // Edge
+  // Edge
   @supports (-ms-overflow-style: none) {
     overflow: auto !important;
-  }*/
+  }
   // IE10+
   @media screen and (-ms-high-contrast: active), (-ms-high-contrast: none) {
     overflow: auto !important;

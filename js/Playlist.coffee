@@ -22,6 +22,12 @@ class @Maslosoft.Playlist
 	adapters: []
 
 	#
+	# Messenger instance
+	#
+	#
+	msg: null
+
+	#
 	# Data extractor
 	# @var Maslosoft.Extractors.Abstract
 	#
@@ -49,6 +55,8 @@ class @Maslosoft.Playlist
 
 		# Build player and playlist
 		@build();
+
+		@msg = new Maslosoft.Playlist.Helpers.Messenger(@frame)
 
 
 	build:() ->
@@ -137,18 +145,8 @@ class @Maslosoft.Playlist
 		initScroller()
 		return true
 
-	#
-	# Create a new frame, as some players
-	# might "lock" frame for their own usage...
-	# 
-	#
-	makeFrame: () ->
-		@frame = @frame.replaceWith(frameTemplate)
-		@frame.prop 'id', @frameId
-
 	# Sloopy next handling
 	next: (link) ->
-		# @makeFrame()
 		link = link[0]
 		# Get next adapter
 		for l, index in @links
@@ -204,6 +202,7 @@ class @Maslosoft.Playlist
 
 			# Prevent mouse click
 			e.preventDefault()
+
 			console.log 'Playing next link...'
 			# Hide tooltip to prevent it staying above video
 			if typeof(jQuery.fn.tooltip) is 'function'
@@ -239,8 +238,6 @@ class @Maslosoft.Playlist
 					# Attach some decorations
 					if adapter.isPlaying()
 						link.addClass 'active playing'
-
-			adapter.setOnEndCallback @frame, endCb
 
 			# Play or stop when player is loaded
 			if loaded

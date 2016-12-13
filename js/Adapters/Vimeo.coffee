@@ -23,6 +23,7 @@ class @Maslosoft.Playlist.Adapters.Vimeo extends @Maslosoft.Playlist.Adapters.Ab
 	#
 	setUrl: (@url) ->
 		@id = @url.replace(/.+\//, '')
+		@id = @id.replace(/\?.+/, '')
 
 	#
 	# Get iframe src. This should return embbedable media iframe ready URL

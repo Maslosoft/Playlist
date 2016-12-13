@@ -44,6 +44,12 @@ class @Maslosoft.Playlist
 	adapters: []
 
 	#
+	# Messenger instance
+	#
+	#
+	msg: null
+
+	#
 	# Data extractor
 	# @var Maslosoft.Extractors.Abstract
 	#
@@ -71,6 +77,8 @@ class @Maslosoft.Playlist
 
 		# Build player and playlist
 		@build();
+
+		@msg = new Maslosoft.Playlist.Helpers.Messenger(@frame)
 
 
 	build:() ->
@@ -159,18 +167,8 @@ class @Maslosoft.Playlist
 		initScroller()
 		return true
 
-	#
-	# Create a new frame, as some players
-	# might "lock" frame for their own usage...
-	# 
-	#
-	makeFrame: () ->
-		@frame = @frame.replaceWith(frameTemplate)
-		@frame.prop 'id', @frameId
-
 	# Sloopy next handling
 	next: (link) ->
-		# @makeFrame()
 		link = link[0]
 		# Get next adapter
 		for l, index in @links
@@ -226,6 +224,7 @@ class @Maslosoft.Playlist
 
 			# Prevent mouse click
 			e.preventDefault()
+
 			console.log 'Playing next link...'
 			# Hide tooltip to prevent it staying above video
 			if typeof(jQuery.fn.tooltip) is 'function'
@@ -261,8 +260,6 @@ class @Maslosoft.Playlist
 					# Attach some decorations
 					if adapter.isPlaying()
 						link.addClass 'active playing'
-
-			adapter.setOnEndCallback @frame, endCb
 
 			# Play or stop when player is loaded
 			if loaded
@@ -306,7 +303,7 @@ class @Maslosoft.Playlist.Options
 			@adapters = [
 				Maslosoft.Playlist.Adapters.YouTube
 				Maslosoft.Playlist.Adapters.Vimeo
-				Maslosoft.Playlist.Adapters.Dailymotion2
+				Maslosoft.Playlist.Adapters.Dailymotion
 			]
 		if not @extractor
 			@extractor = Maslosoft.Playlist.Extractors.LinkExtractor
@@ -381,7 +378,7 @@ class @Maslosoft.Playlist.Adapters.Abstract
 	@match = (url) ->
 
 	@parseEventData = (rawData) ->
-		return rawData
+		return JSON.parse(rawData)
 
 	#
 	# This is called once per adapter type. Can be used to include external
@@ -435,14 +432,6 @@ class @Maslosoft.Playlist.Adapters.Abstract
 	onEnd: (@frame, event) ->
 
 	#
-	# Alternative method to set onEnd callback.
-	# This is always called - even when already loaded,
-	# so make sure that implementing class takes care of it.
-	#
-	setOnEndCallback: (@frame, callback) ->
-
-
-	#
 	# Play embeddable media
 	#
 	# @param @frame jQuery element
@@ -461,7 +450,7 @@ if not @Maslosoft.Playlist.Adapters
 # http://www.dailymotion.com/video/x54imp7_zig-sharko-new-compilation-2016-the-island-tour-hd_kids
 #
 #
-class @Maslosoft.Playlist.AdaptersDailymotion extends @Maslosoft.Playlist.Adapters.Abstract
+class @Maslosoft.Playlist.DailymotionOld extends @Maslosoft.Playlist.Adapters.Abstract
 
 	ready = false
 	apiready = false
@@ -627,7 +616,7 @@ if not @Maslosoft.Playlist.Adapters
 # http://www.dailymotion.com/video/x54imp7_zig-sharko-new-compilation-2016-the-island-tour-hd_kids
 #
 #
-class @Maslosoft.Playlist.Adapters.Dailymotion2 extends @Maslosoft.Playlist.Adapters.Abstract
+class @Maslosoft.Playlist.Adapters.Dailymotion extends @Maslosoft.Playlist.Adapters.Abstract
 
 	ready = false
 	apiready = false
@@ -644,18 +633,6 @@ class @Maslosoft.Playlist.Adapters.Dailymotion2 extends @Maslosoft.Playlist.Adap
 	# libraries etc.
 	#
 	@once: () ->
-		# script = document.createElement('script')
-		# script.async = true
-		# script.src = 'https://api.dmcdn.net/all.js';
-		# tag = document.getElementsByTagName('script')[0]
-		# tag.parentNode.insertBefore(script, tag)
-
-		
-
-		# window.dmAsyncInit = () ->
-		# 	DM.init()
-		# 	init()
-		# 	ready = true
 
 	#
 	# @param string url Embaddable media url
@@ -721,21 +698,10 @@ class @Maslosoft.Playlist.Adapters.Dailymotion2 extends @Maslosoft.Playlist.Adap
 	# @param function Function to call after finish
 	#
 	onEnd: (@frame, callback) =>
-		console.log "Preparing DM on end..."
-		cb = () ->
-			console.log 'Messenger event on end...'
-		ready = () ->
-			console.log 'Api ready...'
-		msg = new Maslosoft.Playlist.Helpers.Messenger(@frame, @)
-		# msg.addEvent('apiready', ready)
-		# msg.addEvent('video_end', cb)
-
 		onMsg = (e, data) ->
-			console.log data.event
-			if data.event is 'end'
-				console.log "Should load next..."
-				callback()
-		name = "message.maslosoft.playlist.Dailymotion2"
+			console.log "onEnd Dailymotion"
+			callback()
+		name = "message.maslosoft.playlist.dailymotion.end"
 		@frame.on name, onMsg
 
 	#
@@ -954,18 +920,29 @@ class @Maslosoft.Playlist.Adapters.YouTube extends @Maslosoft.Playlist.Adapters.
 		@playing = false
 
 	onEnd: (@frame, callback) =>
-		onStateChange = (e) ->
-			if e.data is 0
-				callback()
-
+		
+		# Player instance is required or events will not trigger
 		player = new YT.Player(@frame.get(0).id, {
-	        height: '390',
-        	width: '640',
-        	videoId: @id,
-        	events: {
-            	'onStateChange': onStateChange
-        	}
-        })
+			height: '390',
+			width: '640',
+			videoId: @id,
+			events: {
+				'onStateChange': jQuery.noop
+			}
+		})
+
+		onStateChange = (e, data) ->
+			if data.info is 0
+				callback()
+		name = "message.maslosoft.playlist.youtube.onStateChange"
+		@frame.on name, onStateChange
+
+		infoDelivery = (e, data) =>
+			if data.info.currentTime is data.info.duration
+				@playing = false
+		name = "message.maslosoft.playlist.youtube.infoDelivery"
+		@frame.on name, infoDelivery
+
 	#
 	# Youtube specific methods
 	#
@@ -1023,186 +1000,54 @@ if not @Maslosoft.Playlist.Helpers
 	@Maslosoft.Playlist.Helpers = {}
 
 #
-# TODO Make it abstract, and possibly react 
-# only it's own adapter impl.
 #
 #
 #
 class Maslosoft.Playlist.Helpers.Messenger
 
-	isReady = false
-	eventCallbacks = {}
-	hasWindowEvent = false
-	slice = Array::slice
-	playerOrigin = '*'
-
 	frame: null
 
 	element: null
 
-	adapter: null
-
-	constructor: (@frame, @adapter) ->
+	constructor: (@frame) ->
 		@element = @frame.get(0)
-
+		
+		#
+		# This event handlers must be attached 
+		# _only_ once per playlist
+		# or will fire multiplicated events
+		#
+		#
 		if window.addEventListener
 			# Default event subscribe
-			window.addEventListener 'message', @onMessageReceived, false
+			window.addEventListener 'message', @onMessage, false
 		else
 			# IE compat
-			window.attachEvent 'onmessage', @onMessageReceived
+			window.attachEvent 'onmessage', @onMessage
 
-	api: (method, valueOrCallback) =>
-		if !@element or !method
-			return false
-		target_id = if @element.id != '' then @element.id else null
-		params = if !isFunction(valueOrCallback) then valueOrCallback else null
-		callback = if isFunction(valueOrCallback) then valueOrCallback else null
-		# Store the callback for get functions
-		if callback
-			@storeCallback method, callback, target_id
-		@postMessage method, params, @element
-		@
-
-	addEvent: (eventName, callback) =>
-		if !@element
-			return false
+	onMessage: (event) =>
 		
-		target_id = if @element.id != '' then @element.id else null
-		@storeCallback eventName, callback, target_id
-		# The ready event is not registered via postMessage. It fires regardless.
-		if eventName.match 'ready'
-			console.log 'On ready...'
-			@postMessage 'addEventListener', eventName, @element
-		else if eventName.match 'ready' and isReady
-			callback.call null, target_id
-		@
-
-	removeEvent: (eventName) =>
-		if !@element
-			return false
-		
-		target_id = if @element.id != '' then @element.id else null
-		removed = @removeCallback(eventName, target_id)
-		# The ready event is not registered
-		if eventName.match 'ready' and removed
-			@postMessage 'removeEventListener', eventName, @element
-		return
-
-	###*
-	# Handles posting a message to the parent window.
-	#
-	# @param method (String): name of the method to call inside the player. For api calls
-	# this is the name of the api method (api_play or api_pause) while for events this method
-	# is api_addEventListener.
-	# @param params (Object or Array): List of parameters to submit to the method. Can be either
-	# a single param or an array list of parameters.
-	# @param target (HTMLElement): Target iframe to post the message to.
-	###
-
-	postMessage: (method, params, target) =>
-		if !target.contentWindow.postMessage
-			return false
-		data = JSON.stringify(
-			method: method
-			value: params)
-		target.contentWindow.postMessage data, playerOrigin
-		return
-
-	onMessageReceived: (event) =>
-
+		# See also:
+		# http://stackoverflow.com/questions/15329710/postmessage-source-iframe
+		# Below check shoul handle multi-event handers issue
+		# raised in constructor
+		if @frame.get(0).contentWindow isnt event.source
+			return
 		for name, adapter of Maslosoft.Playlist.Adapters
 			if adapter.match event.origin
+
+				# This must be parsed here, to get info
+				# about sub-event
 				parsedData = adapter.parseEventData(event.data)
 				data = [
 					parsedData
 				]
-				ns = "message.maslosoft.playlist.#{name}"
+				ns = "message.maslosoft.playlist.#{name.toLowerCase()}"
+				ns = "#{ns}.#{parsedData.event}"
+				console.log ns
 				@frame.trigger(ns, data)
 				return
-				
-		return;
-		console.log "Got message..."
-		console.log event
-		data = undefined
-		method = undefined
-		try
-			data = JSON.parse(event.data)
-			method = data.event or data.method
-		catch e
-			# We don't need json parse errors
-		if not method
-			method = jQuery.noop
 
-		if method.match 'ready' and !isReady
-			isReady = true
-		
-		# Handles messages from the proper player only
-		console.log event.origin
-		# if @adapter and @adapter.match(event.origin)
-		# 	return false
-
-		if playerOrigin == '*'
-			playerOrigin = event.origin
-		value = data.value
-		eventData = data.data
-		target_id = if target_id == '' then null else data.player_id
-		callback = @getCallback(method, target_id)
-		params = []
-		if !callback
-			return false
-		if value != undefined
-			params.push value
-		if eventData
-			params.push eventData
-		if target_id
-			params.push target_id
-		if params.length > 0 then callback.apply(null, params) else callback.call()
-
-	###
-	# Stores submitted callbacks for each iframe being tracked and each
-	# event for that iframe for each adapter type.
-	#
-	# @param eventName (String): Name of the event. Eg. api_onPlay
-	# @param callback (Function): Function that should get executed when the
-	# event is fired.
-	# @param target_id (String) [Optional]: If handling more than one iframe then
-	# it stores the different callbacks for different iframes based on the iframe's
-	# id.
-	###
-
-	storeCallback: (eventName, callback, target_id) ->
-		target_id = target_id + @adapter.constructor.name
-		if target_id
-			if !eventCallbacks[target_id]
-				eventCallbacks[target_id] = {}
-			eventCallbacks[target_id][eventName] = callback
-		else
-			eventCallbacks[eventName] = callback
-		return
-
-	###
-	# Retrieves stored callbacks.
-	###
-
-	getCallback: (eventName, target_id) ->
-		target_id = target_id + @adapter.constructor.name
-		if target_id
-			eventCallbacks[target_id][eventName]
-		else
-			eventCallbacks[eventName]
-
-	removeCallback: (eventName, target_id) ->
-		target_id = target_id + @adapter.constructor.name
-		if target_id and eventCallbacks[target_id]
-			if !eventCallbacks[target_id][eventName]
-				return false
-			eventCallbacks[target_id][eventName] = null
-		else
-			if !eventCallbacks[eventName]
-				return false
-			eventCallbacks[eventName] = null
-		true
 if not @Maslosoft.Playlist.Helpers
 	@Maslosoft.Playlist.Helpers = {}
 

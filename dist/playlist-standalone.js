@@ -56,6 +56,8 @@
 
     Playlist.prototype.adapters = [];
 
+    Playlist.prototype.msg = null;
+
     Playlist.prototype.extractor = null;
 
     function Playlist(element, options) {
@@ -74,6 +76,7 @@
       }
       this.frameId = this.id + "Frame";
       this.build();
+      this.msg = new Maslosoft.Playlist.Helpers.Messenger(this.frame);
     }
 
     Playlist.prototype.build = function() {
@@ -140,11 +143,6 @@
       jQuery(window).on('resize', initScroller);
       initScroller();
       return true;
-    };
-
-    Playlist.prototype.makeFrame = function() {
-      this.frame = this.frame.replaceWith(frameTemplate);
-      return this.frame.prop('id', this.frameId);
     };
 
     Playlist.prototype.next = function(link) {
@@ -224,7 +222,6 @@
               }
             });
           }
-          adapter.setOnEndCallback(_this.frame, endCb);
           if (loaded) {
             if (adapter.isPlaying()) {
               link.addClass('active');
@@ -269,7 +266,7 @@
         this[name] = option;
       }
       if (!this.adapters.length) {
-        this.adapters = [Maslosoft.Playlist.Adapters.YouTube, Maslosoft.Playlist.Adapters.Vimeo, Maslosoft.Playlist.Adapters.Dailymotion2];
+        this.adapters = [Maslosoft.Playlist.Adapters.YouTube, Maslosoft.Playlist.Adapters.Vimeo, Maslosoft.Playlist.Adapters.Dailymotion];
       }
       if (!this.extractor) {
         this.extractor = Maslosoft.Playlist.Extractors.LinkExtractor;
@@ -317,7 +314,7 @@
     Abstract.match = function(url) {};
 
     Abstract.parseEventData = function(rawData) {
-      return rawData;
+      return JSON.parse(rawData);
     };
 
     Abstract.once = function(playlist) {};
@@ -352,10 +349,6 @@
       this.frame = frame1;
     };
 
-    Abstract.prototype.setOnEndCallback = function(frame1, callback) {
-      this.frame = frame1;
-    };
-
     Abstract.prototype.play = function(frame1) {
       this.frame = frame1;
     };
@@ -376,15 +369,15 @@
     this.Maslosoft.Playlist.Adapters = {};
   }
 
-  this.Maslosoft.Playlist.AdaptersDailymotion = (function(superClass) {
+  this.Maslosoft.Playlist.DailymotionOld = (function(superClass) {
     var apiready, init, ready;
 
-    extend(AdaptersDailymotion, superClass);
+    extend(DailymotionOld, superClass);
 
-    function AdaptersDailymotion() {
+    function DailymotionOld() {
       this.setOnEndCallback = bind(this.setOnEndCallback, this);
       this.getSrc = bind(this.getSrc, this);
-      return AdaptersDailymotion.__super__.constructor.apply(this, arguments);
+      return DailymotionOld.__super__.constructor.apply(this, arguments);
     }
 
     ready = false;
@@ -393,13 +386,13 @@
 
     init = jQuery.noop;
 
-    AdaptersDailymotion.prototype.endCallback = null;
+    DailymotionOld.prototype.endCallback = null;
 
-    AdaptersDailymotion.match = function(url) {
+    DailymotionOld.match = function(url) {
       return url.match('dailymotion');
     };
 
-    AdaptersDailymotion.once = function() {
+    DailymotionOld.once = function() {
       var script, tag;
       script = document.createElement('script');
       script.async = true;
@@ -413,14 +406,14 @@
       };
     };
 
-    AdaptersDailymotion.prototype.setUrl = function(url1) {
+    DailymotionOld.prototype.setUrl = function(url1) {
       var part;
       this.url = url1;
       part = this.url.replace(/.+?\//g, '');
       return this.id = part.replace(/_.+/g, '');
     };
 
-    AdaptersDailymotion.prototype.getSrc = function(frame1) {
+    DailymotionOld.prototype.getSrc = function(frame1) {
       var frameId, params, src;
       this.frame = frame1;
       frameId = this.frame.get(0).id;
@@ -462,31 +455,31 @@
       }
     };
 
-    AdaptersDailymotion.prototype.setThumb = function(thumbCallback) {
+    DailymotionOld.prototype.setThumb = function(thumbCallback) {
       var url;
       url = "//www.dailymotion.com/thumbnail/video/" + this.id;
       return thumbCallback(url);
     };
 
-    AdaptersDailymotion.prototype.play = function(frame1) {
+    DailymotionOld.prototype.play = function(frame1) {
       this.frame = frame1;
       this.call('play');
       return this.playing = true;
     };
 
-    AdaptersDailymotion.prototype.stop = function(frame1) {
+    DailymotionOld.prototype.stop = function(frame1) {
       this.frame = frame1;
       this.call('pause');
       return this.playing = false;
     };
 
-    AdaptersDailymotion.prototype.pause = function(frame1) {
+    DailymotionOld.prototype.pause = function(frame1) {
       this.frame = frame1;
       this.call('pause');
       return this.playing = false;
     };
 
-    AdaptersDailymotion.prototype.setOnEndCallback = function(frame1, callback) {
+    DailymotionOld.prototype.setOnEndCallback = function(frame1, callback) {
       var e;
       this.frame = frame1;
       try {
@@ -499,7 +492,7 @@
       }
     };
 
-    AdaptersDailymotion.prototype.call = function(func, args) {
+    DailymotionOld.prototype.call = function(func, args) {
       var toCall;
       if (args == null) {
         args = [];
@@ -528,7 +521,7 @@
       return toCall();
     };
 
-    return AdaptersDailymotion;
+    return DailymotionOld;
 
   })(this.Maslosoft.Playlist.Adapters.Abstract);
 
@@ -536,15 +529,15 @@
     this.Maslosoft.Playlist.Adapters = {};
   }
 
-  this.Maslosoft.Playlist.Adapters.Dailymotion2 = (function(superClass) {
+  this.Maslosoft.Playlist.Adapters.Dailymotion = (function(superClass) {
     var apiready, init, ready;
 
-    extend(Dailymotion2, superClass);
+    extend(Dailymotion, superClass);
 
-    function Dailymotion2() {
+    function Dailymotion() {
       this.onEnd = bind(this.onEnd, this);
       this.getSrc = bind(this.getSrc, this);
-      return Dailymotion2.__super__.constructor.apply(this, arguments);
+      return Dailymotion.__super__.constructor.apply(this, arguments);
     }
 
     ready = false;
@@ -553,26 +546,26 @@
 
     init = jQuery.noop;
 
-    Dailymotion2.prototype.endCallback = null;
+    Dailymotion.prototype.endCallback = null;
 
-    Dailymotion2.match = function(url) {
+    Dailymotion.match = function(url) {
       return url.match('dailymotion');
     };
 
-    Dailymotion2.parseEventData = function(rawData) {
+    Dailymotion.parseEventData = function(rawData) {
       return parseQueryString(rawData);
     };
 
-    Dailymotion2.once = function() {};
+    Dailymotion.once = function() {};
 
-    Dailymotion2.prototype.setUrl = function(url1) {
+    Dailymotion.prototype.setUrl = function(url1) {
       var part;
       this.url = url1;
       part = this.url.replace(/.+?\//g, '');
       return this.id = part.replace(/_.+/g, '');
     };
 
-    Dailymotion2.prototype.getSrc = function(frame1) {
+    Dailymotion.prototype.getSrc = function(frame1) {
       var frameId, params, src;
       this.frame = frame1;
       frameId = this.frame.get(0).id;
@@ -581,53 +574,42 @@
       return src;
     };
 
-    Dailymotion2.prototype.setThumb = function(thumbCallback) {
+    Dailymotion.prototype.setThumb = function(thumbCallback) {
       var url;
       url = "//www.dailymotion.com/thumbnail/video/" + this.id;
       return thumbCallback(url);
     };
 
-    Dailymotion2.prototype.play = function(frame1) {
+    Dailymotion.prototype.play = function(frame1) {
       this.frame = frame1;
       this.call('play');
       return this.playing = true;
     };
 
-    Dailymotion2.prototype.stop = function(frame1) {
+    Dailymotion.prototype.stop = function(frame1) {
       this.frame = frame1;
       this.call('pause');
       return this.playing = false;
     };
 
-    Dailymotion2.prototype.pause = function(frame1) {
+    Dailymotion.prototype.pause = function(frame1) {
       this.frame = frame1;
       this.call('pause');
       return this.playing = false;
     };
 
-    Dailymotion2.prototype.onEnd = function(frame1, callback) {
-      var cb, msg, name, onMsg;
+    Dailymotion.prototype.onEnd = function(frame1, callback) {
+      var name, onMsg;
       this.frame = frame1;
-      console.log("Preparing DM on end...");
-      cb = function() {
-        return console.log('Messenger event on end...');
-      };
-      ready = function() {
-        return console.log('Api ready...');
-      };
-      msg = new Maslosoft.Playlist.Helpers.Messenger(this.frame, this);
       onMsg = function(e, data) {
-        console.log(data.event);
-        if (data.event === 'end') {
-          console.log("Should load next...");
-          return callback();
-        }
+        console.log("onEnd Dailymotion");
+        return callback();
       };
-      name = "message.maslosoft.playlist.Dailymotion2";
+      name = "message.maslosoft.playlist.dailymotion.end";
       return this.frame.on(name, onMsg);
     };
 
-    Dailymotion2.prototype.call = function(func, args) {
+    Dailymotion.prototype.call = function(func, args) {
       var toCall;
       if (args == null) {
         args = [];
@@ -648,7 +630,7 @@
       return toCall();
     };
 
-    return Dailymotion2;
+    return Dailymotion;
 
   })(this.Maslosoft.Playlist.Adapters.Abstract);
 
@@ -842,21 +824,32 @@
     };
 
     YouTube.prototype.onEnd = function(frame1, callback) {
-      var onStateChange, player;
+      var infoDelivery, name, onStateChange, player;
       this.frame = frame1;
-      onStateChange = function(e) {
-        if (e.data === 0) {
-          return callback();
-        }
-      };
-      return player = new YT.Player(this.frame.get(0).id, {
+      player = new YT.Player(this.frame.get(0).id, {
         height: '390',
         width: '640',
         videoId: this.id,
         events: {
-          'onStateChange': onStateChange
+          'onStateChange': jQuery.noop
         }
       });
+      onStateChange = function(e, data) {
+        if (data.info === 0) {
+          return callback();
+        }
+      };
+      name = "message.maslosoft.playlist.youtube.onStateChange";
+      this.frame.on(name, onStateChange);
+      infoDelivery = (function(_this) {
+        return function(e, data) {
+          if (data.info.currentTime === data.info.duration) {
+            return _this.playing = false;
+          }
+        };
+      })(this);
+      name = "message.maslosoft.playlist.youtube.infoDelivery";
+      return this.frame.on(name, infoDelivery);
     };
 
     YouTube.prototype.call = function(func, args) {
@@ -953,218 +946,39 @@
   }
 
   Maslosoft.Playlist.Helpers.Messenger = (function() {
-    var eventCallbacks, hasWindowEvent, isReady, playerOrigin, slice;
-
-    isReady = false;
-
-    eventCallbacks = {};
-
-    hasWindowEvent = false;
-
-    slice = Array.prototype.slice;
-
-    playerOrigin = '*';
-
     Messenger.prototype.frame = null;
 
     Messenger.prototype.element = null;
 
-    Messenger.prototype.adapter = null;
-
-    function Messenger(frame1, adapter1) {
+    function Messenger(frame1) {
       this.frame = frame1;
-      this.adapter = adapter1;
-      this.onMessageReceived = bind(this.onMessageReceived, this);
-      this.postMessage = bind(this.postMessage, this);
-      this.removeEvent = bind(this.removeEvent, this);
-      this.addEvent = bind(this.addEvent, this);
-      this.api = bind(this.api, this);
+      this.onMessage = bind(this.onMessage, this);
       this.element = this.frame.get(0);
       if (window.addEventListener) {
-        window.addEventListener('message', this.onMessageReceived, false);
+        window.addEventListener('message', this.onMessage, false);
       } else {
-        window.attachEvent('onmessage', this.onMessageReceived);
+        window.attachEvent('onmessage', this.onMessage);
       }
     }
 
-    Messenger.prototype.api = function(method, valueOrCallback) {
-      var callback, params, target_id;
-      if (!this.element || !method) {
-        return false;
+    Messenger.prototype.onMessage = function(event) {
+      var adapter, data, name, ns, parsedData, ref;
+      if (this.frame.get(0).contentWindow !== event.source) {
+        return;
       }
-      target_id = this.element.id !== '' ? this.element.id : null;
-      params = !isFunction(valueOrCallback) ? valueOrCallback : null;
-      callback = isFunction(valueOrCallback) ? valueOrCallback : null;
-      if (callback) {
-        this.storeCallback(method, callback, target_id);
-      }
-      this.postMessage(method, params, this.element);
-      return this;
-    };
-
-    Messenger.prototype.addEvent = function(eventName, callback) {
-      var target_id;
-      if (!this.element) {
-        return false;
-      }
-      target_id = this.element.id !== '' ? this.element.id : null;
-      this.storeCallback(eventName, callback, target_id);
-      if (eventName.match('ready')) {
-        console.log('On ready...');
-        this.postMessage('addEventListener', eventName, this.element);
-      } else if (eventName.match('ready' && isReady)) {
-        callback.call(null, target_id);
-      }
-      return this;
-    };
-
-    Messenger.prototype.removeEvent = function(eventName) {
-      var removed, target_id;
-      if (!this.element) {
-        return false;
-      }
-      target_id = this.element.id !== '' ? this.element.id : null;
-      removed = this.removeCallback(eventName, target_id);
-      if (eventName.match('ready' && removed)) {
-        this.postMessage('removeEventListener', eventName, this.element);
-      }
-    };
-
-
-    /**
-    	 * Handles posting a message to the parent window.
-    	 *
-    	 * @param method (String): name of the method to call inside the player. For api calls
-    	 * this is the name of the api method (api_play or api_pause) while for events this method
-    	 * is api_addEventListener.
-    	 * @param params (Object or Array): List of parameters to submit to the method. Can be either
-    	 * a single param or an array list of parameters.
-    	 * @param target (HTMLElement): Target iframe to post the message to.
-     */
-
-    Messenger.prototype.postMessage = function(method, params, target) {
-      var data;
-      if (!target.contentWindow.postMessage) {
-        return false;
-      }
-      data = JSON.stringify({
-        method: method,
-        value: params
-      });
-      target.contentWindow.postMessage(data, playerOrigin);
-    };
-
-    Messenger.prototype.onMessageReceived = function(event) {
-      var adapter, callback, data, e, eventData, method, name, ns, params, parsedData, ref, target_id, value;
       ref = Maslosoft.Playlist.Adapters;
       for (name in ref) {
         adapter = ref[name];
         if (adapter.match(event.origin)) {
           parsedData = adapter.parseEventData(event.data);
           data = [parsedData];
-          ns = "message.maslosoft.playlist." + name;
+          ns = "message.maslosoft.playlist." + (name.toLowerCase());
+          ns = ns + "." + parsedData.event;
+          console.log(ns);
           this.frame.trigger(ns, data);
           return;
         }
       }
-      return;
-      console.log("Got message...");
-      console.log(event);
-      data = void 0;
-      method = void 0;
-      try {
-        data = JSON.parse(event.data);
-        method = data.event || data.method;
-      } catch (_error) {
-        e = _error;
-      }
-      if (!method) {
-        method = jQuery.noop;
-      }
-      if (method.match('ready' && !isReady)) {
-        isReady = true;
-      }
-      console.log(event.origin);
-      if (playerOrigin === '*') {
-        playerOrigin = event.origin;
-      }
-      value = data.value;
-      eventData = data.data;
-      target_id = target_id === '' ? null : data.player_id;
-      callback = this.getCallback(method, target_id);
-      params = [];
-      if (!callback) {
-        return false;
-      }
-      if (value !== void 0) {
-        params.push(value);
-      }
-      if (eventData) {
-        params.push(eventData);
-      }
-      if (target_id) {
-        params.push(target_id);
-      }
-      if (params.length > 0) {
-        return callback.apply(null, params);
-      } else {
-        return callback.call();
-      }
-    };
-
-
-    /*
-    	 * Stores submitted callbacks for each iframe being tracked and each
-    	 * event for that iframe for each adapter type.
-    	 *
-    	 * @param eventName (String): Name of the event. Eg. api_onPlay
-    	 * @param callback (Function): Function that should get executed when the
-    	 * event is fired.
-    	 * @param target_id (String) [Optional]: If handling more than one iframe then
-    	 * it stores the different callbacks for different iframes based on the iframe's
-    	 * id.
-     */
-
-    Messenger.prototype.storeCallback = function(eventName, callback, target_id) {
-      target_id = target_id + this.adapter.constructor.name;
-      if (target_id) {
-        if (!eventCallbacks[target_id]) {
-          eventCallbacks[target_id] = {};
-        }
-        eventCallbacks[target_id][eventName] = callback;
-      } else {
-        eventCallbacks[eventName] = callback;
-      }
-    };
-
-
-    /*
-    	 * Retrieves stored callbacks.
-     */
-
-    Messenger.prototype.getCallback = function(eventName, target_id) {
-      target_id = target_id + this.adapter.constructor.name;
-      if (target_id) {
-        return eventCallbacks[target_id][eventName];
-      } else {
-        return eventCallbacks[eventName];
-      }
-    };
-
-    Messenger.prototype.removeCallback = function(eventName, target_id) {
-      target_id = target_id + this.adapter.constructor.name;
-      if (target_id && eventCallbacks[target_id]) {
-        if (!eventCallbacks[target_id][eventName]) {
-          return false;
-        }
-        eventCallbacks[target_id][eventName] = null;
-      } else {
-        if (!eventCallbacks[eventName]) {
-          return false;
-        }
-        eventCallbacks[eventName] = null;
-      }
-      return true;
     };
 
     return Messenger;

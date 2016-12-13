@@ -68,7 +68,7 @@ class @Maslosoft.Playlist.Adapters.Abstract
 	@match = (url) ->
 
 	@parseEventData = (rawData) ->
-		return rawData
+		return JSON.parse(rawData)
 
 	#
 	# This is called once per adapter type. Can be used to include external
@@ -120,14 +120,6 @@ class @Maslosoft.Playlist.Adapters.Abstract
 	# @param function Event to attach at move stop
 	#
 	onEnd: (@frame, event) ->
-
-	#
-	# Alternative method to set onEnd callback.
-	# This is always called - even when already loaded,
-	# so make sure that implementing class takes care of it.
-	#
-	setOnEndCallback: (@frame, callback) ->
-
 
 	#
 	# Play embeddable media

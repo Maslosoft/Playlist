@@ -67,18 +67,29 @@ class @Maslosoft.Playlist.Adapters.YouTube extends @Maslosoft.Playlist.Adapters.
 		@playing = false
 
 	onEnd: (@frame, callback) =>
-		onStateChange = (e) ->
-			if e.data is 0
-				callback()
-
+		
+		# Player instance is required or events will not trigger
 		player = new YT.Player(@frame.get(0).id, {
-	        height: '390',
-        	width: '640',
-        	videoId: @id,
-        	events: {
-            	'onStateChange': onStateChange
-        	}
-        })
+			height: '390',
+			width: '640',
+			videoId: @id,
+			events: {
+				'onStateChange': jQuery.noop
+			}
+		})
+
+		onStateChange = (e, data) ->
+			if data.info is 0
+				callback()
+		name = "message.maslosoft.playlist.youtube.onStateChange"
+		@frame.on name, onStateChange
+
+		infoDelivery = (e, data) =>
+			if data.info.currentTime is data.info.duration
+				@playing = false
+		name = "message.maslosoft.playlist.youtube.infoDelivery"
+		@frame.on name, infoDelivery
+
 	#
 	# Youtube specific methods
 	#

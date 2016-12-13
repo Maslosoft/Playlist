@@ -40,7 +40,16 @@ class @Maslosoft.Playlist.Adapters.YouTube extends @Maslosoft.Playlist.Adapters.
 	#
 	#
 	getSrc: (@frame) ->
-		return "//www.youtube.com/embed/#{@id}?enablejsapi=1"
+		params = [
+			'enablejsapi=1',
+			'rel=0',
+			'controls=2',
+			'modestbranding=1'
+			"origin=#{document.location.protocol}//#{document.location.hostname}"
+		]
+		src = "//www.youtube.com/embed/#{@id}?" + params.join('&')
+		console.log src
+		return src
 
 	#
 	# Play embeddable media

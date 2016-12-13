@@ -118,9 +118,18 @@ class @Maslosoft.Playlist.Adapters.Abstract
 	#
 	onEnd: (@frame, event) ->
 
+	#
+	# Alternative method to set onEnd callback.
+	# This is always called - even when already loaded,
+	# so make sure that implementing class takes care of it.
+	#
+	setOnEndCallback: (@frame, callback) ->
+
 
 	#
 	# Play embeddable media
+	#
+	# @param @frame jQuery element
 	#
 	play: (@frame) ->
 

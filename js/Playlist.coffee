@@ -5,15 +5,15 @@ class @Maslosoft.Playlist
 
 	@idCounter = 0
 
-	id = ''
+	frameTemplate = '<iframe src="" frameborder="" webkitAllowFullScreen mozallowfullscreen allowFullScreen scrolling="no" allowtransparency="true"></iframe>'
 
-	frameId = ''
+	id: ''
 
-	element = null
+	frameId: ''
 
-	playlistLinks = null
+	element: null
 
-	links = null
+	links: null
 
 	#
 	# Video adapters
@@ -58,11 +58,11 @@ class @Maslosoft.Playlist
 
 		# Build wrappers
 		@element.html(
-			'<div class="maslosoft-video-embed-wrapper">
-				<div class="maslosoft-video-embed-container">
-					<iframe src="" frameborder="" webkitAllowFullScreen mozallowfullscreen allowFullScreen scrolling="no" allowtransparency="true"></iframe>
+			"<div class='maslosoft-video-embed-wrapper'>
+				<div class='maslosoft-video-embed-container'>
+					#{frameTemplate}
 				</div>
-			</div>'
+			</div>"
 		)
 
 		# Select playlist
@@ -90,7 +90,9 @@ class @Maslosoft.Playlist
 					if first
 						currentLink = linkElement
 						@current = ad
-						@frame.prop 'src', ad.getSrc(@frame)
+						src = ad.getSrc(@frame)
+						if src
+							@frame.prop 'src', src
 						@frame.one 'load', (e) =>
 							# Attach event on playback of current video finish
 							ad.onEnd @frame, () =>
@@ -135,8 +137,18 @@ class @Maslosoft.Playlist
 		initScroller()
 		return true
 
+	#
+	# Create a new frame, as some players
+	# might "lock" frame for their own usage...
+	# 
+	#
+	makeFrame: () ->
+		@frame = @frame.replaceWith(frameTemplate)
+		@frame.prop 'id', @frameId
+
 	# Sloopy next handling
 	next: (link) ->
+		# @makeFrame()
 		link = link[0]
 		# Get next adapter
 		for l, index in @links
@@ -190,6 +202,9 @@ class @Maslosoft.Playlist
 		# Play on click
 		link.on 'click', (e) =>
 
+			# Prevent mouse click
+			e.preventDefault()
+			console.log 'Playing next link...'
 			# Hide tooltip to prevent it staying above video
 			if typeof(jQuery.fn.tooltip) is 'function'
 				link.tooltip 'hide'
@@ -199,11 +214,18 @@ class @Maslosoft.Playlist
 			if adapter isnt @current
 				@current = adapter
 				loaded = false
-				@frame.prop 'src', adapter.getSrc(@frame)
+				src = adapter.getSrc(@frame)
+				if src
+					@frame.prop 'src', src
 
-
+			# Clear all links status first
+			@links.removeClass 'active playing'
+			
+			endCb = () =>
+				@next(link)
 
 			# Play when player is loaded into iframe
+			# NOTE: This is not reliable
 			if not loaded
 				@frame.one 'load', (e) =>
 					
@@ -212,19 +234,21 @@ class @Maslosoft.Playlist
 
 					# Attach event on playback of current video finish
 
-					adapter.onEnd @frame, () =>
-						@next(link)
+					adapter.onEnd @frame, endCb
 
 					# Attach some decorations
-					@links.removeClass 'active playing'
 					if adapter.isPlaying()
 						link.addClass 'active playing'
+
+			adapter.setOnEndCallback @frame, endCb
 
 			# Play or stop when player is loaded
 			if loaded
 				if adapter.isPlaying()
+					link.addClass 'active'
 					adapter.pause @frame
 				else
+					link.addClass 'active playing'
 					adapter.play @frame
 					adapter.onEnd @frame, () =>
 						@next(link)
@@ -236,8 +260,7 @@ class @Maslosoft.Playlist
 			else
 				link.removeClass 'playing'
 
-			# Prevent mouse click
-			e.preventDefault()
+			
 
 
 		@playlist.append link

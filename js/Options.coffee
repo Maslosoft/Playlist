@@ -17,6 +17,7 @@ class @Maslosoft.Playlist.Options
 			@adapters = [
 				Maslosoft.Playlist.Adapters.YouTube
 				Maslosoft.Playlist.Adapters.Vimeo
+				Maslosoft.Playlist.Adapters.Dailymotion
 			]
 		if not @extractor
 			@extractor = Maslosoft.Playlist.Extractors.LinkExtractor

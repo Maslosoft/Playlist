@@ -26,6 +26,6 @@ class @Maslosoft.Playlist.Helpers.Scroller
 			list.css('height': "#{height}px")
 
 			container = element.find('.maslosoft-video-playlist-holder')
-			Ps.initialize(container.get(0))
+			Maslosoft.Ps.initialize(container.get(0))
 			
 		setTimeout applyHeight, 0

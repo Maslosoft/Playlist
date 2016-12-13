@@ -1,26 +1,26 @@
 (function() {
-  var extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty,
-    bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+  var bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
 
   if (!this.Maslosoft) {
     this.Maslosoft = {};
   }
 
   this.Maslosoft.Playlist = (function() {
-    var element, frameId, id, links, playlistLinks;
+    var frameTemplate;
 
     Playlist.idCounter = 0;
 
-    id = '';
+    frameTemplate = '<iframe src="" frameborder="" webkitAllowFullScreen mozallowfullscreen allowFullScreen scrolling="no" allowtransparency="true"></iframe>';
 
-    frameId = '';
+    Playlist.prototype.id = '';
 
-    element = null;
+    Playlist.prototype.frameId = '';
 
-    playlistLinks = null;
+    Playlist.prototype.element = null;
 
-    links = null;
+    Playlist.prototype.links = null;
 
     Playlist.prototype.adapters = [];
 
@@ -45,9 +45,9 @@
     }
 
     Playlist.prototype.build = function() {
-      var ad, adapter, currentLink, first, i, initScroller, j, len, len1, link, linkElement, playlistHolder, playlistWrapper, ref;
+      var ad, adapter, currentLink, first, i, initScroller, j, len, len1, link, linkElement, links, playlistHolder, playlistWrapper, ref, src;
       links = this.extractor.getData(this.element);
-      this.element.html('<div class="maslosoft-video-embed-wrapper"> <div class="maslosoft-video-embed-container"> <iframe src="" frameborder="" webkitAllowFullScreen mozallowfullscreen allowFullScreen scrolling="no" allowtransparency="true"></iframe> </div> </div>');
+      this.element.html("<div class='maslosoft-video-embed-wrapper'> <div class='maslosoft-video-embed-container'> " + frameTemplate + " </div> </div>");
       this.playlist = jQuery('<div class="maslosoft-video-playlist" />');
       this.frame = this.element.find('iframe');
       this.frame.prop('id', this.frameId);
@@ -65,7 +65,10 @@
             if (first) {
               currentLink = linkElement;
               this.current = ad;
-              this.frame.prop('src', ad.getSrc(this.frame));
+              src = ad.getSrc(this.frame);
+              if (src) {
+                this.frame.prop('src', src);
+              }
               this.frame.one('load', (function(_this) {
                 return function(e) {
                   return ad.onEnd(_this.frame, function() {
@@ -105,6 +108,11 @@
       jQuery(window).on('resize', initScroller);
       initScroller();
       return true;
+    };
+
+    Playlist.prototype.makeFrame = function() {
+      this.frame = this.frame.replaceWith(frameTemplate);
+      return this.frame.prop('id', this.frameId);
     };
 
     Playlist.prototype.next = function(link) {
@@ -156,7 +164,9 @@
       })(this));
       link.on('click', (function(_this) {
         return function(e) {
-          var loaded;
+          var endCb, loaded, src;
+          e.preventDefault();
+          console.log('Playing next link...');
           if (typeof jQuery.fn.tooltip === 'function') {
             link.tooltip('hide');
           }
@@ -164,24 +174,31 @@
           if (adapter !== _this.current) {
             _this.current = adapter;
             loaded = false;
-            _this.frame.prop('src', adapter.getSrc(_this.frame));
+            src = adapter.getSrc(_this.frame);
+            if (src) {
+              _this.frame.prop('src', src);
+            }
           }
+          _this.links.removeClass('active playing');
+          endCb = function() {
+            return _this.next(link);
+          };
           if (!loaded) {
             _this.frame.one('load', function(e) {
               adapter.play(_this.frame);
-              adapter.onEnd(_this.frame, function() {
-                return _this.next(link);
-              });
-              _this.links.removeClass('active playing');
+              adapter.onEnd(_this.frame, endCb);
               if (adapter.isPlaying()) {
                 return link.addClass('active playing');
               }
             });
           }
+          adapter.setOnEndCallback(_this.frame, endCb);
           if (loaded) {
             if (adapter.isPlaying()) {
+              link.addClass('active');
               adapter.pause(_this.frame);
             } else {
+              link.addClass('active playing');
               adapter.play(_this.frame);
               adapter.onEnd(_this.frame, function() {
                 return _this.next(link);
@@ -190,11 +207,10 @@
           }
           link.addClass('active');
           if (adapter.isPlaying()) {
-            link.addClass('playing');
+            return link.addClass('playing');
           } else {
-            link.removeClass('playing');
+            return link.removeClass('playing');
           }
-          return e.preventDefault();
         };
       })(this));
       this.playlist.append(link);
@@ -221,7 +237,7 @@
         this[name] = option;
       }
       if (!this.adapters.length) {
-        this.adapters = [Maslosoft.Playlist.Adapters.YouTube, Maslosoft.Playlist.Adapters.Vimeo];
+        this.adapters = [Maslosoft.Playlist.Adapters.YouTube, Maslosoft.Playlist.Adapters.Vimeo, Maslosoft.Playlist.Adapters.Dailymotion];
       }
       if (!this.extractor) {
         this.extractor = Maslosoft.Playlist.Extractors.LinkExtractor;
@@ -300,6 +316,10 @@
       this.frame = frame1;
     };
 
+    Abstract.prototype.setOnEndCallback = function(frame1, callback) {
+      this.frame = frame1;
+    };
+
     Abstract.prototype.play = function(frame1) {
       this.frame = frame1;
     };
@@ -315,6 +335,166 @@
     return Abstract;
 
   })();
+
+  if (!this.Maslosoft.Playlist.Adapters) {
+    this.Maslosoft.Playlist.Adapters = {};
+  }
+
+  this.Maslosoft.Playlist.Adapters.Dailymotion = (function(superClass) {
+    var apiready, init, ready;
+
+    extend(Dailymotion, superClass);
+
+    function Dailymotion() {
+      this.setOnEndCallback = bind(this.setOnEndCallback, this);
+      this.getSrc = bind(this.getSrc, this);
+      return Dailymotion.__super__.constructor.apply(this, arguments);
+    }
+
+    ready = false;
+
+    apiready = false;
+
+    init = jQuery.noop;
+
+    Dailymotion.prototype.endCallback = null;
+
+    Dailymotion.match = function(url) {
+      return url.match('dailymotion');
+    };
+
+    Dailymotion.once = function() {
+      var script, tag;
+      script = document.createElement('script');
+      script.async = true;
+      script.src = 'https://api.dmcdn.net/all.js';
+      tag = document.getElementsByTagName('script')[0];
+      tag.parentNode.insertBefore(script, tag);
+      return window.dmAsyncInit = function() {
+        DM.init();
+        init();
+        return ready = true;
+      };
+    };
+
+    Dailymotion.prototype.setUrl = function(url1) {
+      var part;
+      this.url = url1;
+      part = this.url.replace(/.+?\//g, '');
+      return this.id = part.replace(/_.+/g, '');
+    };
+
+    Dailymotion.prototype.getSrc = function(frame1) {
+      var frameId, params, src;
+      this.frame = frame1;
+      frameId = this.frame.get(0).id;
+      init = (function(_this) {
+        return function() {
+          var config, player;
+          config = {
+            video: _this.id,
+            params: {
+              api: 'postMessage',
+              autoplay: ready,
+              origin: document.location.protocol + "//" + document.location.hostname,
+              id: frameId,
+              'endscreen-enable': 0,
+              'webkit-playsinline': 1,
+              html: 1
+            }
+          };
+          player = DM.player(_this.frame.get(0), config);
+          player.addEventListener('apiready', function() {
+            console.log('DM API ready');
+            apiready = true;
+            return _this.playing = ready;
+          });
+          return player.addEventListener('end', function() {
+            console.log('On video end...');
+            console.log(_this.endCallback);
+            return _this.endCallback();
+          });
+        };
+      })(this);
+      if (ready) {
+        init();
+        return false;
+      } else {
+        params = ['endscreen-enable=0', 'api=postMessage', 'autoplay=1', "id=" + frameId, "origin=" + document.location.protocol + "//" + document.location.hostname];
+        src = ("https://www.dailymotion.com/embed/video/" + this.id + "?") + params.join('&');
+        return src;
+      }
+    };
+
+    Dailymotion.prototype.setThumb = function(thumbCallback) {
+      var url;
+      url = "//www.dailymotion.com/thumbnail/video/" + this.id;
+      return thumbCallback(url);
+    };
+
+    Dailymotion.prototype.play = function(frame1) {
+      this.frame = frame1;
+      this.call('play');
+      return this.playing = true;
+    };
+
+    Dailymotion.prototype.stop = function(frame1) {
+      this.frame = frame1;
+      this.call('pause');
+      return this.playing = false;
+    };
+
+    Dailymotion.prototype.pause = function(frame1) {
+      this.frame = frame1;
+      this.call('pause');
+      return this.playing = false;
+    };
+
+    Dailymotion.prototype.setOnEndCallback = function(frame1, callback) {
+      var e;
+      this.frame = frame1;
+      try {
+        this.endCallback = callback;
+        return console.log("Setting callback...");
+      } catch (_error) {
+        e = _error;
+        console.log("Could not set callback...");
+        return console.log(e);
+      }
+    };
+
+    Dailymotion.prototype.call = function(func, args) {
+      var toCall;
+      if (args == null) {
+        args = [];
+      }
+      toCall = (function(_this) {
+        return function() {
+          var data, frameId, iframe, result;
+          if (!ready) {
+            console.log('Not loaded');
+            return;
+          }
+          if (!apiready) {
+            console.log('api not ready, skipping');
+            return;
+          }
+          console.log("Call DM " + func);
+          frameId = _this.frame.get(0).id;
+          iframe = document.getElementById(frameId);
+          data = {
+            command: func,
+            parameters: args
+          };
+          return result = iframe.contentWindow.postMessage(JSON.stringify(data), "*");
+        };
+      })(this);
+      return toCall();
+    };
+
+    return Dailymotion;
+
+  })(this.Maslosoft.Playlist.Adapters.Abstract);
 
   if (!this.Maslosoft.Playlist.Adapters) {
     this.Maslosoft.Playlist.Adapters = {};
@@ -344,14 +524,17 @@
 
     Vimeo.prototype.setUrl = function(url1) {
       this.url = url1;
-      return this.id = this.url.replace(/.+\//, '');
+      this.id = this.url.replace(/.+\//, '');
+      return this.id = this.id.replace(/\?.+/, '');
     };
 
     Vimeo.prototype.getSrc = function(frame1) {
-      var frameId;
+      var frameId, params, src;
       this.frame = frame1;
       frameId = this.frame.get(0).id;
-      return "//player.vimeo.com/video/" + this.id + "?api=1&player_id=" + frameId;
+      params = ['api=1', "player_id=" + frameId];
+      src = ("//player.vimeo.com/video/" + this.id + "?") + params.join('&');
+      return src;
     };
 
     Vimeo.prototype.setThumb = function(thumbCallback) {
@@ -476,8 +659,12 @@
     };
 
     YouTube.prototype.getSrc = function(frame1) {
+      var params, src;
       this.frame = frame1;
-      return "//www.youtube.com/embed/" + this.id + "?enablejsapi=1";
+      params = ['enablejsapi=1', 'rel=0', 'controls=2', 'modestbranding=1', "origin=" + document.location.protocol + "//" + document.location.hostname];
+      src = ("//www.youtube.com/embed/" + this.id + "?") + params.join('&');
+      console.log(src);
+      return src;
     };
 
     YouTube.prototype.play = function(frame1) {
@@ -609,6 +796,206 @@
     this.Maslosoft.Playlist.Helpers = {};
   }
 
+  Maslosoft.Playlist.Helpers.Messenger = (function() {
+    var eventCallbacks, hasWindowEvent, isReady, playerOrigin, slice;
+
+    isReady = false;
+
+    eventCallbacks = {};
+
+    hasWindowEvent = false;
+
+    slice = Array.prototype.slice;
+
+    playerOrigin = '*';
+
+    Messenger.iframe = null;
+
+    Messenger.element = null;
+
+    Messenger.adapter = null;
+
+    function Messenger(iframe1, adapter1) {
+      this.iframe = iframe1;
+      this.adapter = adapter1;
+      this.onMessageReceived = bind(this.onMessageReceived, this);
+      this.postMessage = bind(this.postMessage, this);
+      this.removeEvent = bind(this.removeEvent, this);
+      this.addEvent = bind(this.addEvent, this);
+      this.api = bind(this.api, this);
+      this.element = this.iframe;
+    }
+
+    Messenger.prototype.api = function(method, valueOrCallback) {
+      var callback, params, target_id;
+      if (!this.element || !method) {
+        return false;
+      }
+      target_id = this.element.id !== '' ? this.element.id : null;
+      params = !isFunction(valueOrCallback) ? valueOrCallback : null;
+      callback = isFunction(valueOrCallback) ? valueOrCallback : null;
+      if (callback) {
+        this.storeCallback(method, callback, target_id);
+      }
+      this.postMessage(method, params, this.element);
+      return this;
+    };
+
+    Messenger.prototype.addEvent = function(eventName, callback) {
+      var target_id;
+      if (!this.element) {
+        return false;
+      }
+      target_id = this.element.id !== '' ? this.element.id : null;
+      this.storeCallback(eventName, callback, target_id);
+      if (eventName.match('ready')) {
+        this.postMessage('addEventListener', eventName, this.element);
+      } else if (eventName.match('ready' && isReady)) {
+        callback.call(null, target_id);
+      }
+      return this;
+    };
+
+    Messenger.prototype.removeEvent = function(eventName) {
+      var removed, target_id;
+      if (!this.element) {
+        return false;
+      }
+      target_id = this.element.id !== '' ? this.element.id : null;
+      removed = this.removeCallback(eventName, target_id);
+      if (eventName.match('ready' && removed)) {
+        this.postMessage('removeEventListener', eventName, this.element);
+      }
+    };
+
+
+    /**
+    	 * Handles posting a message to the parent window.
+    	 *
+    	 * @param method (String): name of the method to call inside the player. For api calls
+    	 * this is the name of the api method (api_play or api_pause) while for events this method
+    	 * is api_addEventListener.
+    	 * @param params (Object or Array): List of parameters to submit to the method. Can be either
+    	 * a single param or an array list of parameters.
+    	 * @param target (HTMLElement): Target iframe to post the message to.
+     */
+
+    Messenger.prototype.postMessage = function(method, params, target) {
+      var data;
+      if (!target.contentWindow.postMessage) {
+        return false;
+      }
+      data = JSON.stringify({
+        method: method,
+        value: params
+      });
+      target.contentWindow.postMessage(data, playerOrigin);
+    };
+
+    Messenger.prototype.onMessageReceived = function(event) {
+      var callback, data, e, eventData, method, params, target_id, value;
+      data = void 0;
+      method = void 0;
+      try {
+        data = JSON.parse(event.data);
+        method = data.event || data.method;
+      } catch (_error) {
+        e = _error;
+      }
+      if (method.match('ready' && !isReady)) {
+        isReady = true;
+      }
+      console.log(event.origin);
+      if (this.adapter.match(event.origin)) {
+        return false;
+      }
+      if (playerOrigin === '*') {
+        playerOrigin = event.origin;
+      }
+      value = data.value;
+      eventData = data.data;
+      target_id = target_id === '' ? null : data.player_id;
+      callback = this.getCallback(method, target_id);
+      params = [];
+      if (!callback) {
+        return false;
+      }
+      if (value !== void 0) {
+        params.push(value);
+      }
+      if (eventData) {
+        params.push(eventData);
+      }
+      if (target_id) {
+        params.push(target_id);
+      }
+      if (params.length > 0) {
+        return callback.apply(null, params);
+      } else {
+        return callback.call();
+      }
+    };
+
+
+    /*
+    	 * Stores submitted callbacks for each iframe being tracked and each
+    	 * event for that iframe.
+    	 *
+    	 * @param eventName (String): Name of the event. Eg. api_onPlay
+    	 * @param callback (Function): Function that should get executed when the
+    	 * event is fired.
+    	 * @param target_id (String) [Optional]: If handling more than one iframe then
+    	 * it stores the different callbacks for different iframes based on the iframe's
+    	 * id.
+     */
+
+    Messenger.prototype.storeCallback = function(eventName, callback, target_id) {
+      if (target_id) {
+        if (!eventCallbacks[target_id]) {
+          eventCallbacks[target_id] = {};
+        }
+        eventCallbacks[target_id][eventName] = callback;
+      } else {
+        eventCallbacks[eventName] = callback;
+      }
+    };
+
+
+    /*
+    	 * Retrieves stored callbacks.
+     */
+
+    Messenger.prototype.getCallback = function(eventName, target_id) {
+      if (target_id) {
+        return eventCallbacks[target_id][eventName];
+      } else {
+        return eventCallbacks[eventName];
+      }
+    };
+
+    Messenger.prototype.removeCallback = function(eventName, target_id) {
+      if (target_id && eventCallbacks[target_id]) {
+        if (!eventCallbacks[target_id][eventName]) {
+          return false;
+        }
+        eventCallbacks[target_id][eventName] = null;
+      } else {
+        if (!eventCallbacks[eventName]) {
+          return false;
+        }
+        eventCallbacks[eventName] = null;
+      }
+      return true;
+    };
+
+    return Messenger;
+
+  })();
+
+  if (!this.Maslosoft.Playlist.Helpers) {
+    this.Maslosoft.Playlist.Helpers = {};
+  }
+
   this.Maslosoft.Playlist.Helpers.Scroller = (function() {
     Scroller.holder = null;
 
@@ -629,7 +1016,7 @@
             'height': height + "px"
           });
           container = element.find('.maslosoft-video-playlist-holder');
-          return Ps.initialize(container.get(0));
+          return Maslosoft.Ps.initialize(container.get(0));
         };
       })(this);
       setTimeout(applyHeight, 0);

@@ -31,7 +31,12 @@ class @Maslosoft.Playlist.Adapters.Vimeo extends @Maslosoft.Playlist.Adapters.Ab
 	#
 	getSrc: (@frame) ->
 		frameId = @frame.get(0).id
-		return "//player.vimeo.com/video/#{@id}?api=1&player_id=#{frameId}"
+		params = [
+			'api=1',
+			"player_id=#{frameId}"
+		]
+		src = "//player.vimeo.com/video/#{@id}?" + params.join('&')
+		return src
 
 	#
 	# Set preview, or thumb for embaddable media

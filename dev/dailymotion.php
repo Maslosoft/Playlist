@@ -3,7 +3,7 @@ require '_header.php'
 ?>
 <?php
 $items = [
-	'https://vimeo.com/137939626' => 'Morocco Surf Trip by BoardRider',
+	'http://www.dailymotion.com/video/x1282jw_dailymotion-test_lifestyle' => 'Test video',
 	'https://www.dailymotion.com/video/x54imp7_zig-sharko-new-compilation-2016-the-island-tour-hd_kids' => 'Zig Sharko',
 	'https://vimeo.com/83393819' => 'Surfing Morocco Taghazout',
 	'https://www.youtube.com/watch?v=w-niB3biH34' => 'Zawsze z Tobą',

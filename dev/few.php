@@ -3,12 +3,9 @@ require '_header.php'
 ?>
 <?php
 $items = [
-	'https://www.youtube.com/watch?v=4-33aCEwbro' => 'YT 1',
-	'https://vimeo.com/194647607' => 'VM 1',
-	'https://vimeo.com/194647400?from=outro-embed' => 'VM 2',
-	'https://www.youtube.com/watch?v=UGFebAkUqqI' => 'YT 2',
-	'http://www.dailymotion.com/video/x553e19_video-for' => 'DM 1',
-	'https://www.dailymotion.com/video/x54ldun' => 'DM 2 (short url)',
+	'https://vimeo.com/137939626' => 'Morocco Surf Trip by BoardRider',
+	'https://vimeo.com/83393819' => 'Surfing Morocco Taghazout',
+	'https://www.youtube.com/watch?v=w-niB3biH34' => 'Zawsze z Tobą',
 ];
 ?>
 <div class="row">
@@ -20,7 +17,7 @@ $items = [
 </div>
 <div class="row">
 	<div class="col-md-4 col-xs-12 col-sm-6" style="margin-bottom: 100px;">
-		<div class="maslosoft-playlist">
+		<div class="maslosoft-playlist" style="border-radius: 30px;">
 			<?php foreach ($items as $url => $title): ?>
 				<a href="<?= $url ?>"><?= $title ?></a>
 			<?php endforeach; ?>

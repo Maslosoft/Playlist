@@ -115,7 +115,7 @@ class @Maslosoft.Playlist.Adapters.Dailymotion2 extends @Maslosoft.Playlist.Adap
 				console.log "Should load next..."
 				callback()
 		name = "message.maslosoft.playlist.Dailymotion2"
-		jQuery(document).on name, onMsg
+		@frame.on name, onMsg
 
 	#
 	# DM specific methods

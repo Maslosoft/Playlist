@@ -15,14 +15,14 @@ class Maslosoft.Playlist.Helpers.Messenger
 	slice = Array::slice
 	playerOrigin = '*'
 
-	@iframe: null
+	frame: null
 
-	@element: null
+	element: null
 
-	@adapter: null
+	adapter: null
 
-	constructor: (@iframe, @adapter) ->
-		@element = @iframe.get(0)
+	constructor: (@frame, @adapter) ->
+		@element = @frame.get(0)
 
 		if window.addEventListener
 			# Default event subscribe
@@ -97,7 +97,7 @@ class Maslosoft.Playlist.Helpers.Messenger
 					parsedData
 				]
 				ns = "message.maslosoft.playlist.#{name}"
-				jQuery(document).trigger(ns, data)
+				@frame.trigger(ns, data)
 				return
 				
 		return;

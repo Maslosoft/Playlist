@@ -718,7 +718,7 @@
         }
       };
       name = "message.maslosoft.playlist.Dailymotion2";
-      return jQuery(document).on(name, onMsg);
+      return this.frame.on(name, onMsg);
     };
 
     Dailymotion2.prototype.call = function(func, args) {
@@ -1059,21 +1059,21 @@
 
     playerOrigin = '*';
 
-    Messenger.iframe = null;
+    Messenger.prototype.frame = null;
 
-    Messenger.element = null;
+    Messenger.prototype.element = null;
 
-    Messenger.adapter = null;
+    Messenger.prototype.adapter = null;
 
-    function Messenger(iframe1, adapter1) {
-      this.iframe = iframe1;
+    function Messenger(frame1, adapter1) {
+      this.frame = frame1;
       this.adapter = adapter1;
       this.onMessageReceived = bind(this.onMessageReceived, this);
       this.postMessage = bind(this.postMessage, this);
       this.removeEvent = bind(this.removeEvent, this);
       this.addEvent = bind(this.addEvent, this);
       this.api = bind(this.api, this);
-      this.element = this.iframe.get(0);
+      this.element = this.frame.get(0);
       if (window.addEventListener) {
         window.addEventListener('message', this.onMessageReceived, false);
       } else {
@@ -1157,7 +1157,7 @@
           parsedData = adapter.parseEventData(event.data);
           data = [parsedData];
           ns = "message.maslosoft.playlist." + name;
-          jQuery(document).trigger(ns, data);
+          this.frame.trigger(ns, data);
           return;
         }
       }

@@ -1,6 +1,12 @@
 if not @Maslosoft.Playlist.Helpers
 	@Maslosoft.Playlist.Helpers = {}
 
+#
+# TODO Make it abstract, and possibly react 
+# only it's own adapter impl.
+#
+#
+#
 class Maslosoft.Playlist.Helpers.Messenger
 
 	isReady = false
@@ -16,7 +22,14 @@ class Maslosoft.Playlist.Helpers.Messenger
 	@adapter: null
 
 	constructor: (@iframe, @adapter) ->
-		@element = @iframe
+		@element = @iframe.get(0)
+
+		if window.addEventListener
+			# Default event subscribe
+			window.addEventListener 'message', @onMessageReceived, false
+		else
+			# IE compat
+			window.attachEvent 'onmessage', @onMessageReceived
 
 	api: (method, valueOrCallback) =>
 		if !@element or !method
@@ -38,6 +51,7 @@ class Maslosoft.Playlist.Helpers.Messenger
 		@storeCallback eventName, callback, target_id
 		# The ready event is not registered via postMessage. It fires regardless.
 		if eventName.match 'ready'
+			console.log 'On ready...'
 			@postMessage 'addEventListener', eventName, @element
 		else if eventName.match 'ready' and isReady
 			callback.call null, target_id
@@ -75,6 +89,20 @@ class Maslosoft.Playlist.Helpers.Messenger
 		return
 
 	onMessageReceived: (event) =>
+
+		for name, adapter of Maslosoft.Playlist.Adapters
+			if adapter.match event.origin
+				parsedData = adapter.parseEventData(event.data)
+				data = [
+					parsedData
+				]
+				ns = "message.maslosoft.playlist.#{name}"
+				jQuery(document).trigger(ns, data)
+				return
+				
+		return;
+		console.log "Got message..."
+		console.log event
 		data = undefined
 		method = undefined
 		try
@@ -82,14 +110,16 @@ class Maslosoft.Playlist.Helpers.Messenger
 			method = data.event or data.method
 		catch e
 			# We don't need json parse errors
+		if not method
+			method = jQuery.noop
 
 		if method.match 'ready' and !isReady
 			isReady = true
 		
 		# Handles messages from the proper player only
 		console.log event.origin
-		if @adapter.match(event.origin)
-			return false
+		# if @adapter and @adapter.match(event.origin)
+		# 	return false
 
 		if playerOrigin == '*'
 			playerOrigin = event.origin
@@ -110,7 +140,7 @@ class Maslosoft.Playlist.Helpers.Messenger
 
 	###
 	# Stores submitted callbacks for each iframe being tracked and each
-	# event for that iframe.
+	# event for that iframe for each adapter type.
 	#
 	# @param eventName (String): Name of the event. Eg. api_onPlay
 	# @param callback (Function): Function that should get executed when the
@@ -121,6 +151,7 @@ class Maslosoft.Playlist.Helpers.Messenger
 	###
 
 	storeCallback: (eventName, callback, target_id) ->
+		target_id = target_id + @adapter.constructor.name
 		if target_id
 			if !eventCallbacks[target_id]
 				eventCallbacks[target_id] = {}
@@ -134,12 +165,14 @@ class Maslosoft.Playlist.Helpers.Messenger
 	###
 
 	getCallback: (eventName, target_id) ->
+		target_id = target_id + @adapter.constructor.name
 		if target_id
 			eventCallbacks[target_id][eventName]
 		else
 			eventCallbacks[eventName]
 
 	removeCallback: (eventName, target_id) ->
+		target_id = target_id + @adapter.constructor.name
 		if target_id and eventCallbacks[target_id]
 			if !eventCallbacks[target_id][eventName]
 				return false

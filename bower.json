@@ -23,12 +23,12 @@
     "tests"
   ],
   "dependencies": {
-    "jquery": "~2",
-    "font-awesome": "fontawesome#~4",
-    "bootstrap": "~3",
-    "perfect-scrollbar": "^0.6.12"
+    "jquery": "~2"
   },
   "devDependencies": {
-    "perfect-scrollbar": "^0.6.14"
+    "bootstrap": "~3",
+    "font-awesome": "fontawesome#~4",
+    "perfect-scrollbar": "^0.6.14",
+    "coffee-sugar": "^1.0.1"
   }
 }

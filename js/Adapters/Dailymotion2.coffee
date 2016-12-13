@@ -6,7 +6,7 @@ if not @Maslosoft.Playlist.Adapters
 # http://www.dailymotion.com/video/x54imp7_zig-sharko-new-compilation-2016-the-island-tour-hd_kids
 #
 #
-class @Maslosoft.Playlist.AdaptersDailymotion extends @Maslosoft.Playlist.Adapters.Abstract
+class @Maslosoft.Playlist.Adapters.Dailymotion2 extends @Maslosoft.Playlist.Adapters.Abstract
 
 	ready = false
 	apiready = false
@@ -15,21 +15,26 @@ class @Maslosoft.Playlist.AdaptersDailymotion extends @Maslosoft.Playlist.Adapte
 	@match: (url) ->
 		return url.match('dailymotion')
 
+	@parseEventData = (rawData) ->
+		return parseQueryString(rawData)
+
 	#
 	# This is called once per adapter type. Can be used to include external
 	# libraries etc.
 	#
 	@once: () ->
-		script = document.createElement('script')
-		script.async = true
-		script.src = 'https://api.dmcdn.net/all.js';
-		tag = document.getElementsByTagName('script')[0]
-		tag.parentNode.insertBefore(script, tag)
+		# script = document.createElement('script')
+		# script.async = true
+		# script.src = 'https://api.dmcdn.net/all.js';
+		# tag = document.getElementsByTagName('script')[0]
+		# tag.parentNode.insertBefore(script, tag)
 
-		window.dmAsyncInit = () ->
-			DM.init()
-			init()
-			ready = true
+		
+
+		# window.dmAsyncInit = () ->
+		# 	DM.init()
+		# 	init()
+		# 	ready = true
 
 	#
 	# @param string url Embaddable media url
@@ -47,46 +52,15 @@ class @Maslosoft.Playlist.AdaptersDailymotion extends @Maslosoft.Playlist.Adapte
 	getSrc: (@frame) =>
 		frameId = @frame.get(0).id
 
-		# This will be called on async init if not yet ready
-		init = () =>
-			config = {
-				video: @id,
-				params: {
-					api: 'postMessage',
-					# Use autoplay only when ready, otherways just show still frame
-					autoplay: ready,
-					origin: "#{document.location.protocol}//#{document.location.hostname}"
-					id: frameId,
-					'endscreen-enable': 0,
-					'webkit-playsinline': 1,
-					html: 1
-				}
-			}
-			player = DM.player(@frame.get(0), config)
-			player.addEventListener 'apiready', () =>
-				console.log 'DM API ready'
-				apiready = true
-				@playing = ready
-			player.addEventListener 'end', () =>
-				console.log 'On video end...'
-				console.log @endCallback
-				@endCallback()
-
-		# If not ready, it means that it's first video on list,
-		# and page just loaded
-		if ready
-			init()
-			return false
-		else
-			params = [
-				'endscreen-enable=0',
-				'api=postMessage',
-				'autoplay=1',
-				"id=#{frameId}",
-				"origin=#{document.location.protocol}//#{document.location.hostname}"
-			]
-			src = "https://www.dailymotion.com/embed/video/#{@id}?" + params.join('&')
-			return src
+		params = [
+			'endscreen-enable=0',
+			'api=postMessage',
+			'autoplay=0',
+			"id=#{frameId}",
+			"origin=#{document.location.protocol}//#{document.location.hostname}"
+		]
+		src = "https://www.dailymotion.com/embed/video/#{@id}?" + params.join('&')
+		return src
 
 	#
 	# Set preview, or thumb for embaddable media
@@ -125,13 +99,23 @@ class @Maslosoft.Playlist.AdaptersDailymotion extends @Maslosoft.Playlist.Adapte
 	# @param object Iframe object
 	# @param function Function to call after finish
 	#
-	setOnEndCallback: (@frame, callback) =>
-		try
-			@endCallback = callback
-			console.log "Setting callback..."
-		catch e
-			console.log "Could not set callback..."
-			console.log e
+	onEnd: (@frame, callback) =>
+		console.log "Preparing DM on end..."
+		cb = () ->
+			console.log 'Messenger event on end...'
+		ready = () ->
+			console.log 'Api ready...'
+		msg = new Maslosoft.Playlist.Helpers.Messenger(@frame, @)
+		# msg.addEvent('apiready', ready)
+		# msg.addEvent('video_end', cb)
+
+		onMsg = (e, data) ->
+			console.log data.event
+			if data.event is 'end'
+				console.log "Should load next..."
+				callback()
+		name = "message.maslosoft.playlist.Dailymotion2"
+		jQuery(document).on name, onMsg
 
 	#
 	# DM specific methods
@@ -140,13 +124,6 @@ class @Maslosoft.Playlist.AdaptersDailymotion extends @Maslosoft.Playlist.Adapte
 	#
 	call: (func, args = []) ->
 		toCall = () =>
-			# Just in case api is not yet loaded
-			if not ready
-				console.log 'Not loaded'
-				return
-			if not apiready
-				console.log 'api not ready, skipping'
-				return
 			
 			console.log "Call DM #{func}"
 			frameId = @frame.get(0).id

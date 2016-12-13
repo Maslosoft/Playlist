@@ -15,7 +15,7 @@ for file in ps
 	fs.writeFileSync(file, contents)
 
 playlist = [
-	'js/_function.coffee',
+	'js/_functions.coffee',
 	'js/Playlist.coffee',
 	'js/Options.coffee',
 	'js/Adapters/*',
@@ -30,10 +30,12 @@ watchSass = sass.slice 0
 watchSass.push 'css/ps/*'
 
 dev = [
+	'bower_components/coffee-sugar/dist/sugar.js'
 	'dist/playlist-standalone.js'
 	ps[0]
 ]
 min = [
+	'bower_components/coffee-sugar/dist/sugar.min.js'
 	'dist/playlist-standalone.min.js'
 	ps[1]
 ]
@@ -47,6 +49,7 @@ module.exports = (grunt) ->
 					sourceMap: true
 					join: true
 					expand: true
+					nonull: true
 				files: [
 					'dist/playlist-standalone.js': playlist
 				]
@@ -59,9 +62,11 @@ module.exports = (grunt) ->
 		concat:
 			min:
 				src: min
+				nonull: true
 				dest: 'dist/playlist.min.js'
 			dev:
 				src: dev
+				nonull: true
 				dest: 'dist/playlist.js'
 		watch:
 			compile:

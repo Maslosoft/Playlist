@@ -67,6 +67,9 @@ class @Maslosoft.Playlist.Adapters.Abstract
 	#
 	@match = (url) ->
 
+	@parseEventData = (rawData) ->
+		return rawData
+
 	#
 	# This is called once per adapter type. Can be used to include external
 	# libraries etc.

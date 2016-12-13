@@ -1,4 +1,21 @@
+fs = require "fs"
+
+ps = [
+	'bower_components/perfect-scrollbar/js/perfect-scrollbar.js'
+	'bower_components/perfect-scrollbar/js/perfect-scrollbar.min.js'
+]
+replaces = {
+	'window.PerfectScrollbar': 'Maslosoft.PerfectScrollbar'
+	'window.Ps': 'Maslosoft.Ps'
+}
+for file in ps
+	contents = fs.readFileSync(file).toString()
+	for search, replace of replaces
+		contents = contents.replace(search, replace)
+	fs.writeFileSync(file, contents)
+
 playlist = [
+	'js/_function.coffee',
 	'js/Playlist.coffee',
 	'js/Options.coffee',
 	'js/Adapters/*',
@@ -13,12 +30,12 @@ watchSass = sass.slice 0
 watchSass.push 'css/ps/*'
 
 dev = [
-	'bower_components/perfect-scrollbar/js/perfect-scrollbar.js'
 	'dist/playlist-standalone.js'
+	ps[0]
 ]
 min = [
-	'bower_components/perfect-scrollbar/js/perfect-scrollbar.min.js'
 	'dist/playlist-standalone.min.js'
+	ps[1]
 ]
 module.exports = (grunt) ->
 

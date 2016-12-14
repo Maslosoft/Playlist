@@ -1,6 +1,10 @@
 {
     "name": "maslosoft/playlist",
     "description": "Create playlists from embeddable media",
+    	"license": [
+		"AGPL",
+		"Commercial"
+	],
     "authors": [
         {
             "name": "Peter Maselkowski",

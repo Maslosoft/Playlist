@@ -1,0 +1,11 @@
+{
+    "name": "maslosoft/playlist",
+    "description": "Create playlists from embeddable media",
+    "authors": [
+        {
+            "name": "Peter Maselkowski",
+            "email": "pmaselkowski@gmail.com"
+        }
+    ],
+    "require": {}
+}

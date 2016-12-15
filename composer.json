@@ -1,15 +1,16 @@
 {
-    "name": "maslosoft/playlist",
-    "description": "Create playlists from embeddable media",
-    	"license": [
+	"name": "maslosoft/playlist",
+	"description": "Create playlists from embeddable media",
+	"license": [
 		"AGPL",
 		"Commercial"
 	],
-    "authors": [
-        {
-            "name": "Peter Maselkowski",
-            "email": "pmaselkowski@gmail.com"
-        }
-    ],
-    "require": {}
+	"authors": [
+		{
+			"name": "Peter Maselkowski",
+			"email": "pmaselkowski@gmail.com"
+		}
+	],
+	"require": {},
+	"homepage": "https://maslosoft.com/playlist/"
 }
